@@ -1,0 +1,62 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  // output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+
+
+model MenuItem {
+  id             String     @id @default(uuid())
+  name           String
+  description    String?
+  ingredients    String[]
+  price          Int
+  active         Boolean    @default(true)
+  availableDays  String[]
+  imageUrl       String?
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  orderItems     OrderItem[]
+}
+
+model Order {
+  id             String     @id @default(uuid())
+  customerEmail  String
+  pickupDate     DateTime
+  pickupTime     String
+  notes          String?
+  total          Int
+  status         String     @default("pending")
+  createdAt      DateTime   @default(now())
+
+  orderItems     OrderItem[]
+}
+
+model OrderItem {
+  id           String    @id @default(uuid())
+  orderId      String
+  menuItemId   String
+  quantity     Int
+
+  order        Order     @relation(fields: [orderId], references: [id])
+  menuItem     MenuItem  @relation(fields: [menuItemId], references: [id])
+}
+
+model Availability {
+  id         String     @id @default(uuid())
+  date       DateTime   @unique
+  timeSlots  String[]
+}
