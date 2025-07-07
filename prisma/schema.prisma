@@ -30,7 +30,7 @@ model Order {
   pickupDate     DateTime
   pickupTime     String
   notes          String?
-  total          Int
+  cost           Int
   status         String     @default("pending")
   createdAt      DateTime   @default(now())
 
