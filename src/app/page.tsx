@@ -6,6 +6,11 @@ type MenuItem = {
   id: string
   name: string
   price: number
+  description?: string
+  ingredients?: string[]
+  active: boolean
+  availableDays?: string[]
+  imageUrl?: string
 }
 
 export default function HomePage() {
@@ -24,6 +29,7 @@ export default function HomePage() {
         {items.map(item => (
           <li key={item.id} className="p-2 border rounded">
             {item.name} - ${(item.price / 100).toFixed(2)}
+            / {item.description} / {item.ingredients} / {item.active} / {item.availableDays} / {item.imageUrl}
           </li>
         ))}
       </ul>
