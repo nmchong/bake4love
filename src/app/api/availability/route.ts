@@ -2,6 +2,7 @@ import { prisma } from '@/lib/prisma'
 import { NextResponse } from 'next/server'
 
 // return list of available timeslots for given date
+// GET /api/availability?date=YYYY-MM-DD
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url)
   const dateParam = searchParams.get("date")

@@ -2,6 +2,7 @@ import { prisma } from '@/lib/prisma'
 import { NextResponse } from 'next/server'
 
 // return list of menu items for given date
+// GET /api/menu?date=YYYY-MM-DD
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url)
   const dateParam = searchParams.get("date")

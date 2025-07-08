@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma"
 import { NextResponse } from "next/server"
 
 // create new order
+// POST /api/order
 export async function POST(req: Request) {
   try {
     const body = await req.json()

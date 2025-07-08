@@ -6,6 +6,7 @@ interface Params {
 }
 
 
+// get details for order
 // GET /api/order/[id]
 export async function GET(req: Request, { params }: Params) {
   const orderId = params.id;
