@@ -11,9 +11,15 @@ export async function POST(req: Request) {
             pickupDate: string;
             pickupTime: string;
             notes?: string;
-            cart: { menuItemId: string; quantity: number }[]
+            cart: { menuItemId: string; quantity: number; variant: "full" | "half" }[]
           } = body
-    if (!customerEmail || !pickupDate || !pickupTime || !Array.isArray(cart)) {
+
+    if (!customerEmail ||
+        !pickupDate ||
+        !pickupTime ||
+        !Array.isArray(cart) ||
+        cart.some(item => !item.menuItemId || !item.quantity || !item.variant)
+    ) {
       return NextResponse.json({ error: "Missing fields" }, { status: 400 })
     }
 
@@ -32,7 +38,11 @@ export async function POST(req: Request) {
       if (!menuItem) {
         return NextResponse.json({ error: "Invalid menu item in cart" }, { status: 400 })
       }
-      totalCost += menuItem.price * item.quantity
+
+      const price = item.variant === "half"
+        ? menuItem.halfPrice ?? 0
+        : menuItem.price
+      totalCost += price * item.quantity
     }
 
     // create order
@@ -47,7 +57,8 @@ export async function POST(req: Request) {
         orderItems: {
           create: cart.map((item) => ({
             menuItem: { connect: { id: item.menuItemId } },
-            quantity: item.quantity
+            quantity: item.quantity,
+            variant: item.variant
           }))
         }
       }

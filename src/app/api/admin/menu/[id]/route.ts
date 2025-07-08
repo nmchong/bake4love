@@ -15,6 +15,8 @@ export async function PATCH(
     description,
     ingredients,
     price,
+    halfPrice,
+    isHalfOrder,
     active,
     availableDays,
     imageUrl
@@ -23,6 +25,8 @@ export async function PATCH(
     description?: string
     ingredients?: string[]
     price?: number
+    halfPrice?: number
+    isHalfOrder?: boolean
     active?: boolean
     availableDays?: string[]
     imageUrl?: string
@@ -36,6 +40,8 @@ export async function PATCH(
         description,
         ingredients,
         price,
+        halfPrice,
+        isHalfOrder,
         active,
         availableDays,
         imageUrl
