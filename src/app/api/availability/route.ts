@@ -29,3 +29,32 @@ export async function GET(req: Request) {
     timeSlots: availability.timeSlots
   })
 }
+
+
+// set timeslot availability for given date
+// POST /api/availability
+export async function POST(req: Request) {
+  try {
+    const body = await req.json()
+    const { date, timeSlots }: { date: string; timeSlots: string[] } = body
+
+    if (!date || !Array.isArray(timeSlots)) {
+      return NextResponse.json({ error: "Missing fields" }, { status: 400 })
+    }
+
+    const parsedDate = new Date(date)
+    const strippedDate = new Date(parsedDate.toString())
+
+    // upsert (create if doesn't exist, else update)
+    await prisma.availability.upsert({
+      where: { date: strippedDate },
+      update: { timeSlots },
+      create: { date: strippedDate, timeSlots }
+    })
+
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error("Error setting availability:", error)
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+  }
+}
