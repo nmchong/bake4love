@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma'
 import { NextResponse } from 'next/server'
+import { startOfDay } from "date-fns"
 
 // return list of available timeslots for given date
 // GET /api/availability?date=YYYY-MM-DD
@@ -43,7 +44,7 @@ export async function POST(req: Request) {
     }
 
     const parsedDate = new Date(date)
-    const strippedDate = new Date(parsedDate.toString())
+    const strippedDate = startOfDay(parsedDate)
 
     // upsert (create if doesn't exist, else update)
     await prisma.availability.upsert({
