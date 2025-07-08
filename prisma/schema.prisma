@@ -18,7 +18,7 @@ model MenuItem {
   ingredients    String[]
   price          Int
   halfPrice      Int?
-  isHalfOrder    Boolean    @default(false)
+  hasHalfOrder    Boolean    @default(false)
   active         Boolean    @default(true)
   availableDays  String[]
   imageUrl       String?
