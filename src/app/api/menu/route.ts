@@ -1,9 +1,44 @@
 import { prisma } from '@/lib/prisma'
 import { NextResponse } from 'next/server'
 
-export async function GET() {
-  const items = await prisma.menuItem.findMany({
-    where: { active: true }
+// return list of menu items for given date
+export async function GET(req: Request) {
+  const { searchParams } = new URL(req.url)
+  const dateParam = searchParams.get("date")
+
+  // if no date provided, return all active items
+  if (!dateParam) {
+    const items = await prisma.menuItem.findMany({
+      where: { active: true }
+    })
+    return NextResponse.json(items)
+  }
+
+  // parse date & day of week
+  const date = new Date(dateParam)
+  const dayOfWeek = date.toLocaleDateString("en-US", { weekday: "long" })
+
+  // check if chef is available
+  const availability = await prisma.availability.findFirst({
+    where: {
+      date: {
+        equals: new Date(dateParam)
+      }
+    }
   })
-  return NextResponse.json(items)
+  if (!availability) {
+    return NextResponse.json([])
+  }
+
+  // show all items where (1) chef is available, (2) item is active, (3) item is available that day of week
+  const items = await prisma.menuItem.findMany({
+    where: {
+      active: true,
+      availableDays: {
+        has: dayOfWeek
+      }
+    }
+  })
+
+   return NextResponse.json(items)
 }
