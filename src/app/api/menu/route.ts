@@ -17,13 +17,22 @@ export async function GET(req: Request) {
 
   // parse date & day of week
   const date = new Date(dateParam)
+  if (isNaN(date.getTime())) {
+    return NextResponse.json({ error: "Invalid date" }, { status: 400 })
+  }
   const dayOfWeek = date.toLocaleDateString("en-US", { weekday: "long" })
+
+  // get start and end of the day in UTC using Date.UTC
+  const [year, month, day] = dateParam.split('-').map(Number)
+  const startOfDay = new Date(Date.UTC(year, month - 1, day, 0, 0, 0))
+  const endOfDay = new Date(Date.UTC(year, month - 1, day + 1, 0, 0, 0))
 
   // check if chef is available
   const availability = await prisma.availability.findFirst({
     where: {
       date: {
-        equals: new Date(dateParam)
+        gte: startOfDay,
+        lt: endOfDay,
       }
     }
   })
