@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
+import { format } from 'date-fns'
 
 type TimeSlotsProps = {
   selectedDate: Date; 
@@ -19,7 +20,8 @@ export default function TimeSlots({ selectedDate, onSelectTime }: TimeSlotsProps
     setLoading(true)
     setError(false)
 
-    fetch(`/api/availability?date=${selectedDate.toISOString().split('T')[0]}`)
+    const iso = format(selectedDate, 'yyyy-MM-dd')
+    fetch(`/api/availability?date=${iso}`)
       .then(res => res.json())
       .then(data => {
         if (data.available) {
