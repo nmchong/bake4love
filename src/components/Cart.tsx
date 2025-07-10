@@ -1,5 +1,6 @@
 "use client"
 
+import { useRouter } from "next/navigation"
 import { Drawer, DrawerContent, DrawerTrigger, DrawerTitle } from "@/components/ui/drawer"
 import { Button } from "@/components/ui/button"
 
@@ -16,6 +17,7 @@ const mockCartItems = [
 export default function Cart() {
   const cartItems = mockCartItems
   const total = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
+  const router = useRouter()
 
   return (
     <Drawer direction="right">
@@ -45,7 +47,7 @@ export default function Cart() {
           <span>${(total / 100).toFixed(2)}</span>
         </div>
 
-        <Button className="mt-6 w-full">Proceed to Checkout</Button>
+        <Button className="mt-6 w-full" onClick={() => router.push("/checkout")}>Proceed to Checkout</Button>
       </DrawerContent>
     </Drawer>
   )
