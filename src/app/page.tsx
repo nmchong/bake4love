@@ -7,6 +7,7 @@ import MenuSection from "@/components/MenuSection"
 import { MenuItem } from "@prisma/client"
 import { format } from "date-fns"
 import Cart from "@/components/Cart"
+import { CartProvider } from "@/components/CartContext"
 
 export default function HomePage() {
   const [selectedDate, setSelectedDate] = useState(new Date())
@@ -48,7 +49,7 @@ export default function HomePage() {
 
 
   return (
-    <>
+    <CartProvider>
       <HeroSection />
       <CalendarRow
         selectedDate={selectedDate}
@@ -58,6 +59,6 @@ export default function HomePage() {
       <TimeSlots selectedDate={selectedDate} />
       <MenuSection items={menuItems}/>
       <Cart />
-    </>
+    </CartProvider>
   )
 }
