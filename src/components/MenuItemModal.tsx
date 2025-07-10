@@ -4,20 +4,35 @@ import { MenuItem } from "@/types"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import Image from "next/image"
 
-type Props = {
+interface Props {
   menuItem: MenuItem,
-  onClose: () => void
+  onClose: () => void,
+  selectedDate: string // in 'yyyy-MM-dd' format
 }
 
 // popup modal when clicking on menu item
-export default function MenuItemModal({ menuItem, onClose }: Props) {
-  const { addToCart } = useCart()
+export default function MenuItemModal({ menuItem, onClose, selectedDate }: Props) {
+  const { cartItems, pickupDate, setPickupDate, addToCart, resetCart } = useCart()
   const [variant, setVariant] = useState<"full" | "half">("full")
   const [quantity, setQuantity] = useState(1)
+  const [showDateWarning, setShowDateWarning] = useState(false)
+  const [pendingAdd, setPendingAdd] = useState<{variant: "full"|"half", quantity: number} | null>(null)
 
   const canHalf = menuItem.hasHalfOrder && menuItem.halfPrice != null
 
-  const handleAdd = () => {
+  const tryAdd = () => {
+    if (cartItems.length > 0 && pickupDate && pickupDate !== selectedDate) {
+      setPendingAdd({ variant, quantity })
+      setShowDateWarning(true)
+    } else {
+      doAdd(variant, quantity, selectedDate)
+    }
+  }
+
+  const doAdd = (variant: "full"|"half", quantity: number, date: string) => {
+    if (!pickupDate || pickupDate !== date) {
+      setPickupDate(date)
+    }
     addToCart({
       id: menuItem.id,
       name: menuItem.name,
@@ -25,6 +40,21 @@ export default function MenuItemModal({ menuItem, onClose }: Props) {
       variant
     }, quantity)
     onClose()
+  }
+
+  const confirmSwitchDate = () => {
+    if (pendingAdd) {
+      resetCart()
+      setPickupDate(selectedDate)
+      doAdd(pendingAdd.variant, pendingAdd.quantity, selectedDate)
+      setShowDateWarning(false)
+      setPendingAdd(null)
+    }
+  }
+
+  const cancelSwitchDate = () => {
+    setShowDateWarning(false)
+    setPendingAdd(null)
   }
 
   return (
@@ -71,10 +101,22 @@ export default function MenuItemModal({ menuItem, onClose }: Props) {
             <label className="font-semibold">Quantity:</label>
             <input type="number" min={1} value={quantity} onChange={e => setQuantity(Number(e.target.value))} className="ml-2 w-16 border rounded p-1" />
           </div>
-          <button className="mt-4 px-4 py-2 bg-black text-white rounded" onClick={handleAdd}>
+          <button className="mt-4 px-4 py-2 bg-black text-white rounded" onClick={tryAdd}>
             Add to Cart
           </button>
         </div>
+        {showDateWarning && (
+          <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
+            <div className="bg-white p-6 rounded shadow-lg max-w-sm w-full">
+              <h2 className="text-lg font-bold mb-2">Switch delivery date?</h2>
+              <p className="mb-4">Switching your delivery date will reset your cart. Continue?</p>
+              <div className="flex gap-2 justify-end">
+                <button className="px-4 py-2 rounded bg-gray-200" onClick={cancelSwitchDate}>Cancel</button>
+                <button className="px-4 py-2 rounded bg-black text-white" onClick={confirmSwitchDate}>Switch Date</button>
+              </div>
+            </div>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   )

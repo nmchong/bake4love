@@ -5,10 +5,11 @@ import MenuItemModal from "./MenuItemModal"
 
 interface MenuSectionProps {
   items: MenuItem[]
+  selectedDate: string
 }
 
 // render menu section (all menu items)
-export default function MenuSection({ items }: MenuSectionProps) {
+export default function MenuSection({ items, selectedDate }: MenuSectionProps) {
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null)
 
   if (!items || items.length === 0) {
@@ -27,7 +28,7 @@ export default function MenuSection({ items }: MenuSectionProps) {
         ))}
       </div>
       {selectedItem && (
-        <MenuItemModal menuItem={selectedItem} onClose={() => setSelectedItem(null)} />
+        <MenuItemModal menuItem={selectedItem} onClose={() => setSelectedItem(null)} selectedDate={selectedDate} />
       )}
     </>
   )

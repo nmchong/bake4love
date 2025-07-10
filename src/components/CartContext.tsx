@@ -10,6 +10,11 @@ export type CartItem = {
 
 interface CartContextType {
   cartItems: CartItem[]
+  pickupDate: string | null
+  pickupTime: string | null
+  setPickupDate: (date: string) => void
+  setPickupTime: (time: string) => void
+  resetCart: () => void
   addToCart: (item: Omit<CartItem, "quantity">, quantity?: number) => void
   increment: (id: string, variant: "full" | "half") => void
   decrement: (id: string, variant: "full" | "half") => void
@@ -20,6 +25,13 @@ const CartContext = createContext<CartContextType | undefined>(undefined)
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [cartItems, setCartItems] = useState<CartItem[]>([])
+  const [pickupDate, setPickupDate] = useState<string | null>(null)
+  const [pickupTime, setPickupTime] = useState<string | null>(null)
+
+  const resetCart = () => {
+    setCartItems([])
+    setPickupTime(null)
+  }
 
   const addToCart = (item: Omit<CartItem, "quantity">, quantity: number = 1) => {
     setCartItems(prev => {
@@ -59,7 +71,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <CartContext.Provider value={{ cartItems, addToCart, increment, decrement, removeItem }}>
+    <CartContext.Provider value={{ cartItems, pickupDate, pickupTime, setPickupDate, setPickupTime, resetCart, addToCart, increment, decrement, removeItem }}>
       {children}
     </CartContext.Provider>
   )

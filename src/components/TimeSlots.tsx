@@ -3,16 +3,18 @@
 import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { format } from 'date-fns'
+import { useCart } from '@/components/CartContext'
 
 type TimeSlotsProps = {
   selectedDate: Date; 
   onSelectTime?: (time: string) => void
 }
 
-export default function TimeSlots({ selectedDate, onSelectTime }: TimeSlotsProps) {
+export default function TimeSlots({ selectedDate }: TimeSlotsProps) {
   const [timeSlots, setTimeSlots] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
+  const { pickupTime, setPickupTime } = useCart()
 
   useEffect(() => {
     if (!selectedDate) return
@@ -46,8 +48,8 @@ export default function TimeSlots({ selectedDate, onSelectTime }: TimeSlotsProps
       {timeSlots.map((time) => (
         <Button
           key={time}
-          variant="outline"
-          onClick={() => onSelectTime?.(time)}
+          variant={pickupTime === time ? "default" : "outline"}
+          onClick={() => setPickupTime(time)}
         >
           {time}
         </Button>
