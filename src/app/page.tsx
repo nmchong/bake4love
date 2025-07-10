@@ -1,38 +1,63 @@
-'use client'
-
-import { useEffect, useState } from 'react'
-
-type MenuItem = {
-  id: string
-  name: string
-  price: number
-  description?: string
-  ingredients?: string[]
-  active: boolean
-  availableDays?: string[]
-  imageUrl?: string
-}
+"use client"
+import { useState, useEffect } from "react"
+import CalendarRow from "@/components/CalendarRow"
+import HeroSection from "@/components/HeroSection"
+import TimeSlots from "@/components/TimeSlots"
+import MenuSection from "@/components/MenuSection"
+import { MenuItem } from "@prisma/client"
+import { format } from "date-fns"
+import Cart from "@/components/Cart"
 
 export default function HomePage() {
-  const [items, setItems] = useState<MenuItem[]>([])
+  const [selectedDate, setSelectedDate] = useState(new Date())
+  const [availableDates, setAvailableDates] = useState<{ [key: string]: boolean }>({})
+  const [menuItems, setMenuItems] = useState<MenuItem[]>([])
 
+  // fetch availability for the next 14 days
   useEffect(() => {
-    fetch('/api/menu')
-      .then(res => res.json())
-      .then(data => setItems(data))
+    const fetchAvailability = async () => {
+      const result: { [key: string]: boolean } = {}
+      for (let i = 0; i < 14; i++) {
+        const date = new Date()
+        date.setDate(date.getDate() + i)
+        const iso = format(date, 'yyyy-MM-dd')
+
+        const res = await fetch(`/api/availability?date=${iso}`)
+        const data = await res.json()
+        result[iso] = data.available
+      }
+      setAvailableDates(result)
+    }
+
+    fetchAvailability()
   }, [])
 
+  // fetch menu items for selectedDate
+  useEffect(() => {
+    const fetchMenuItems = async () => {
+      const iso = format(selectedDate, 'yyyy-MM-dd')
+      const res = await fetch(`/api/menu?date=${iso}`)
+      const data = await res.json()
+      setMenuItems(data || [])
+    }
+
+    fetchMenuItems()
+  }, [selectedDate])
+
+
+
+
   return (
-    <main className="p-4">
-      <h1 className="text-2xl font-bold mb-4">Menu</h1>
-      <ul className="space-y-2">
-        {items.map(item => (
-          <li key={item.id} className="p-2 border rounded">
-            {item.name} - ${(item.price / 100).toFixed(2)}
-            / {item.description} / {item.ingredients} / {item.active} / {item.availableDays} / {item.imageUrl}
-          </li>
-        ))}
-      </ul>
-    </main>
+    <>
+      <HeroSection />
+      <CalendarRow
+        selectedDate={selectedDate}
+        onSelect={setSelectedDate}
+        availableDates={availableDates}
+      />
+      <TimeSlots selectedDate={selectedDate} />
+      <MenuSection items={menuItems}/>
+      <Cart />
+    </>
   )
 }
