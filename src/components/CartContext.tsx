@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState } from "react"
+'use client'
+import React, { createContext, useContext, useState, useEffect } from "react"
 
 export type CartItem = {
   id: string
@@ -23,10 +24,44 @@ interface CartContextType {
 
 const CartContext = createContext<CartContextType | undefined>(undefined)
 
+const STORAGE_KEY = "joans-bakery-cart"
+
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [cartItems, setCartItems] = useState<CartItem[]>([])
   const [pickupDate, setPickupDate] = useState<string | null>(null)
   const [pickupTime, setPickupTime] = useState<string | null>(null)
+  const [hydrated, setHydrated] = useState(false)
+
+  // rehydrate from localStorage on mount
+  useEffect(() => {
+    try {
+      const data = localStorage.getItem(STORAGE_KEY)
+      if (data) {
+        const parsed = JSON.parse(data)
+        setCartItems(parsed.cartItems || [])
+        setPickupDate(parsed.pickupDate || null)
+        setPickupTime(parsed.pickupTime || null)
+      }
+    } catch (error) {
+      console.error('Error loading cart from localStorage:', error)
+    } finally {
+      setHydrated(true)
+    }
+  }, [])
+
+  // persist to localStorage on change
+  useEffect(() => {
+    if (!hydrated) return
+    
+    try {
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({ cartItems, pickupDate, pickupTime })
+      )
+    } catch (error) {
+      console.error('Error saving cart to localStorage:', error)
+    }
+  }, [cartItems, pickupDate, pickupTime, hydrated])
 
   const resetCart = () => {
     setCartItems([])
@@ -70,8 +105,24 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     setCartItems(prev => prev.filter(item => !(item.id === id && item.variant === variant)))
   }
 
+  // show loading state while hydrating
+  if (!hydrated) {
+    return <div className="min-h-screen flex items-center justify-center">Loading...</div>
+  }
+
   return (
-    <CartContext.Provider value={{ cartItems, pickupDate, pickupTime, setPickupDate, setPickupTime, resetCart, addToCart, increment, decrement, removeItem }}>
+    <CartContext.Provider value={{ 
+      cartItems, 
+      pickupDate, 
+      pickupTime, 
+      setPickupDate, 
+      setPickupTime, 
+      resetCart, 
+      addToCart, 
+      increment, 
+      decrement, 
+      removeItem 
+    }}>
       {children}
     </CartContext.Provider>
   )

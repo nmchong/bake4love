@@ -7,9 +7,9 @@ import MenuSection from "@/components/MenuSection"
 import { MenuItem } from "@prisma/client"
 import { format } from "date-fns"
 import Cart from "@/components/Cart"
-import { CartProvider, useCart } from "@/components/CartContext"
+import { useCart } from "@/components/CartContext"
 
-function HomePageInner() {
+export default function HomePage() {
   const [selectedDate, setSelectedDate] = useState(new Date())
   const [availableDates, setAvailableDates] = useState<{ [key: string]: boolean }>({})
   const [menuItems, setMenuItems] = useState<MenuItem[]>([])
@@ -90,13 +90,5 @@ function HomePageInner() {
         </div>
       )}
     </>
-  )
-}
-
-export default function HomePage() {
-  return (
-    <CartProvider>
-      <HomePageInner />
-    </CartProvider>
   )
 }

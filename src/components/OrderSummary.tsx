@@ -20,7 +20,7 @@ function OrderSummary({ cartItems }: OrderSummaryProps) {
       <h2 className="text-xl font-bold mb-4">Order Summary</h2>
       <ul className="divide-y divide-gray-200">
         {cartItems.map((item) => (
-          <li key={item.id} className="py-2 flex justify-between">
+          <li key={`${item.id}-${item.variant}`} className="py-2 flex justify-between">
             <span>
               {item.name} ({item.variant}) x{item.quantity}
             </span>
