@@ -1,10 +1,20 @@
 "use client"
-import { useState } from "react"
 
-export default function OrderForm() {
-  const [name, setName] = useState("")
-  const [email, setEmail] = useState("")
-  const [notes, setNotes] = useState("")
+export interface OrderFormValues {
+  name: string
+  email: string
+  notes: string
+}
+
+interface OrderFormProps {
+  values: OrderFormValues
+  onChange: (values: OrderFormValues) => void
+}
+
+export default function OrderForm({ values, onChange }: OrderFormProps) {
+  const handleChange = (field: keyof OrderFormValues, value: string) => {
+    onChange({ ...values, [field]: value })
+  }
 
   return (
     <div className="p-4 space-y-4">
@@ -14,21 +24,21 @@ export default function OrderForm() {
           type="text"
           placeholder="Name"
           className="w-full border rounded p-2"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
+          value={values.name}
+          onChange={(e) => handleChange("name", e.target.value)}
         />
         <input
           type="email"
           placeholder="Email"
           className="w-full border rounded p-2"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          value={values.email}
+          onChange={(e) => handleChange("email", e.target.value)}
         />
         <textarea
           placeholder="Notes (optional)"
           className="w-full border rounded p-2"
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
+          value={values.notes}
+          onChange={(e) => handleChange("notes", e.target.value)}
         />
       </div>
     </div>
