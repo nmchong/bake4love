@@ -30,6 +30,7 @@ function CheckoutPageContent() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           customerEmail: form.email,
+          customerName: form.name,
           pickupDate,
           pickupTime,
           notes: form.notes,

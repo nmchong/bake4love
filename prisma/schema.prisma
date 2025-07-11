@@ -29,6 +29,7 @@ model MenuItem {
 model Order {
   id             String     @id @default(uuid())
   customerEmail  String
+  customerName   String
   pickupDate     DateTime
   pickupTime     String
   notes          String?

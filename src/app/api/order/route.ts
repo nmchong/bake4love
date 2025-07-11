@@ -6,8 +6,9 @@ import { NextResponse } from "next/server"
 export async function POST(req: Request) {
   try {
     const body = await req.json()
-    const { customerEmail, pickupDate, pickupTime, notes, cart }: 
+    const { customerEmail, customerName, pickupDate, pickupTime, notes, cart }: 
           { customerEmail: string;
+            customerName: string;
             pickupDate: string;
             pickupTime: string;
             notes?: string;
@@ -15,6 +16,7 @@ export async function POST(req: Request) {
           } = body
 
     if (!customerEmail ||
+        !customerName ||
         !pickupDate ||
         !pickupTime ||
         !Array.isArray(cart) ||
@@ -49,6 +51,7 @@ export async function POST(req: Request) {
     const order = await prisma.order.create({
       data: {
         customerEmail,
+        customerName,
         pickupDate: new Date(pickupDate),
         pickupTime,
         notes,
