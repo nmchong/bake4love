@@ -25,7 +25,8 @@ function CheckoutPageContent() {
     setError(null)
     setSubmitting(true)
     try {
-      const res = await fetch("/api/order", {
+      // 1. create the order
+      const orderRes = await fetch("/api/order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -41,14 +42,29 @@ function CheckoutPageContent() {
           }))
         })
       })
-      const data = await res.json()
-      if (!res.ok || !data.success) {
-        setError(data.error || "Failed to place order.")
+      const orderData = await orderRes.json()
+      if (!orderRes.ok || !orderData.success) {
+        setError(orderData.error || "Failed to place order.")
         setSubmitting(false)
         return
       }
+
+      // 2. create stripe checkout session
+      const checkoutRes = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orderId: orderData.orderId })
+      })
+      const checkoutData = await checkoutRes.json()
+      if (!checkoutRes.ok || !checkoutData.url) {
+        setError(checkoutData.error || "Failed to create checkout session.")
+        setSubmitting(false)
+        return
+      }
+
+      // 3. redirect tos stripe checkout
       resetCart()
-      router.push(`/order/${data.orderId}`)
+      window.location.href = checkoutData.url
     } catch {
       setError("Something went wrong. Please try again.")
       setSubmitting(false)
@@ -61,7 +77,7 @@ function CheckoutPageContent() {
       <OrderForm values={form} onChange={setForm} />
       <OrderSummary cartItems={cartItems} />
       <Button className="mt-4" onClick={handleSubmit} disabled={!canSubmit}>
-        {submitting ? "Placing Order..." : "Proceed to Payment"}
+        {submitting ? "Creating Checkout Session..." : "Proceed to Payment"}
       </Button>
       {error && <div className="col-span-2 text-red-500 mt-2">{error}</div>}
     </div>

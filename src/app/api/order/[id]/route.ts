@@ -1,19 +1,16 @@
-import { prisma } from "@/lib/prisma";
-import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma"
+import { NextResponse } from "next/server"
 
-interface Params {
-  params: { id: string };
-}
-
-
-// get details for order
 // GET /api/order/[id]
-export async function GET(req: Request, { params }: Params) {
-  const orderId = params.id;
-
+export async function GET(
+  req: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
+    const { id } = await params
+
     const order = await prisma.order.findUnique({
-      where: { id: orderId },
+      where: { id },
       include: {
         orderItems: {
           include: {
@@ -21,30 +18,15 @@ export async function GET(req: Request, { params }: Params) {
           }
         }
       }
-    });
+    })
 
     if (!order) {
-      return NextResponse.json({ error: "Order not found" }, { status: 404 });
+      return NextResponse.json({ error: "Order not found" }, { status: 404 })
     }
 
-    const formatted = {
-      id: order.id,
-      customerEmail: order.customerEmail,
-      pickupDate: order.pickupDate,
-      pickupTime: order.pickupTime,
-      status: order.status,
-      notes: order.notes,
-      cost: order.cost,
-      orderItems: order.orderItems.map((item) => ({
-        name: item.menuItem.name,
-        quantity: item.quantity,
-        price: item.menuItem.price
-      }))
-    };
-
-    return NextResponse.json(formatted);
-  } catch (err) {
-    console.error("Error fetching order:", err);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json(order)
+  } catch (error) {
+    console.error("Error fetching order:", error)
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }
