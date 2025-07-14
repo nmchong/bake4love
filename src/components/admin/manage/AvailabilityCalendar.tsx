@@ -4,13 +4,10 @@ interface AvailabilityCalendarProps {
   ordersByDate: Record<string, number>
   availabilityByDate: Record<string, { timeSlots: string[] } | undefined>
   customerViewRange: { start: Date; end: Date }
+  formatDateLocal: (date: Date) => string
 }
 
-function getDateKey(date: Date) {
-  return date.toISOString().slice(0, 10)
-}
-
-export default function AvailabilityCalendar({ selectedDate, onSelectDate, ordersByDate, availabilityByDate, customerViewRange }: AvailabilityCalendarProps) {
+export default function AvailabilityCalendar({ selectedDate, onSelectDate, ordersByDate, availabilityByDate, customerViewRange, formatDateLocal }: AvailabilityCalendarProps) {
   // calculate the days in the current month
   const year = selectedDate.getFullYear()
   const month = selectedDate.getMonth()
@@ -23,7 +20,7 @@ export default function AvailabilityCalendar({ selectedDate, onSelectDate, order
 
   // helper to determine color
   function getColor(date: Date) {
-    const key = getDateKey(date)
+    const key = formatDateLocal(date)
     const inCustomerRange = date >= customerViewRange.start && date <= customerViewRange.end
     const isPastCustomerRange = date < customerViewRange.start
     const isFutureCustomerRange = date > customerViewRange.end
@@ -55,9 +52,9 @@ export default function AvailabilityCalendar({ selectedDate, onSelectDate, order
       <div className="grid grid-cols-7 gap-1">
         {blanks.map((_, i) => <div key={i} />)}
         {days.map(date => {
-          const key = getDateKey(date)
+          const key = formatDateLocal(date)
           const color = getColor(date)
-          const isSelected = getDateKey(date) === getDateKey(selectedDate)
+          const isSelected = formatDateLocal(date) === formatDateLocal(selectedDate)
           return (
             <button
               key={key}

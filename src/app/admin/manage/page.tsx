@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState, useCallback } from "react"
+import { toZonedTime, format as formatTz, fromZonedTime } from "date-fns-tz"
 import AdminSidebar from "@/components/admin/shared/AdminSidebar"
 import AvailabilityCalendar from "@/components/admin/manage/AvailabilityCalendar"
 import DateDetailsPane from "@/components/admin/manage/DateDetailsPane"
@@ -17,6 +18,9 @@ interface MenuItemToggle {
 interface Availability {
   timeSlots: string[]
 }
+
+const TIMEZONE = "America/Los_Angeles"
+const DAY_NAMES = ['Sun','Mon','Tues','Wed','Thurs','Fri','Sat']
 
 export default function AdminManagePage() {
   // state
@@ -41,12 +45,13 @@ export default function AdminManagePage() {
     end: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 13)
   }
 
-  // helper: get all dates in current month
+  // helper: get all dates in current month (in local timezone)
   function getMonthDates(date: Date) {
-    const year = date.getFullYear()
-    const month = date.getMonth()
-    const firstDay = new Date(year, month, 1)
-    const lastDay = new Date(year, month + 1, 0)
+    const zoned = toZonedTime(date, TIMEZONE)
+    const year = zoned.getFullYear()
+    const month = zoned.getMonth()
+    const firstDay = toZonedTime(new Date(year, month, 1), TIMEZONE)
+    const lastDay = toZonedTime(new Date(year, month + 1, 0), TIMEZONE)
     const days: Date[] = []
     for (let d = new Date(firstDay); d <= lastDay; d.setDate(d.getDate() + 1)) {
       days.push(new Date(d))
@@ -54,52 +59,56 @@ export default function AdminManagePage() {
     return days
   }
 
-  // fetch all data for the current month
-  useEffect(() => {
-    async function fetchAll() {
-      setLoading(true)
-      setMenuError(null)
-      setAvailabilityError(null)
-      try {
-        // 1. fetch menu items
-        const menuRes = await fetch("/api/admin/menu")
-        if (!menuRes.ok) throw new Error("Failed to fetch menu items")
-        const menuData = await menuRes.json()
-        setMenuItems(menuData)
-        setMenuItemsDraft(menuData)
+  // format date as yyyy-mm-dd in local timezone
+  function formatDateLocal(date: Date) {
+    return formatTz(toZonedTime(date, TIMEZONE), 'yyyy-MM-dd', { timeZone: TIMEZONE })
+  }
 
-        // 2. fetch availability and orders for each date in the month
-        const monthDates = getMonthDates(selectedDate)
-        const dateStrs = monthDates.map(d => d.toISOString().slice(0, 10))
-        // availability
-        const availResults = await Promise.all(dateStrs.map(async date => {
-          const res = await fetch(`/api/availability?date=${date}`)
-          if (!res.ok) return [date, undefined]
-          const data = await res.json()
-          return [date, data.available ? { timeSlots: data.timeSlots } : undefined]
-        }))
-        setAvailabilityByDate(Object.fromEntries(availResults))
-        // orders
-        const orderResults = await Promise.all(dateStrs.map(async date => {
-          const res = await fetch(`/api/admin/orders?date=${date}`)
-          if (!res.ok) return [date, 0]
-          const data = await res.json()
-          return [date, Array.isArray(data) ? data.length : 0]
-        }))
-        setOrdersByDate(Object.fromEntries(orderResults))
-      } catch {
+  // fetch all data for the current month
+  const fetchMonthData = useCallback(async (monthDate: Date) => {
+    // 1. fetch menu items
+    const menuRes = await fetch("/api/admin/menu")
+    if (!menuRes.ok) throw new Error("Failed to fetch menu items")
+    const menuData = await menuRes.json()
+    setMenuItems(menuData)
+    setMenuItemsDraft(menuData)
+
+    // 2. fetch availability and orders for each date in the month
+    const monthDates = getMonthDates(monthDate)
+    const dateStrs = monthDates.map(d => formatDateLocal(d))
+    // availability
+    const availResults = await Promise.all(dateStrs.map(async date => {
+      const res = await fetch(`/api/availability?date=${date}`)
+      if (!res.ok) return [date, undefined]
+      const data = await res.json()
+      return [date, data.available ? { timeSlots: data.timeSlots } : undefined]
+    }))
+    setAvailabilityByDate(Object.fromEntries(availResults))
+    // orders
+    const orderResults = await Promise.all(dateStrs.map(async date => {
+      const res = await fetch(`/api/admin/orders?date=${date}`)
+      if (!res.ok) return [date, 0]
+      const data = await res.json()
+      return [date, Array.isArray(data.orders) ? data.orders.length : 0]
+    }))
+    setOrdersByDate(Object.fromEntries(orderResults))
+  }, [])
+
+  useEffect(() => {
+    setLoading(true)
+    setMenuError(null)
+    setAvailabilityError(null)
+    fetchMonthData(selectedDate)
+      .catch(() => {
         setMenuError("Failed to load data")
         setAvailabilityError("Failed to load data")
-      } finally {
-        setLoading(false)
-      }
-    }
-    fetchAll()
-  }, [selectedDate]);
+      })
+      .finally(() => setLoading(false))
+  }, [fetchMonthData, selectedDate])
 
   // when selectedDate or availabilityByDate changes, update availabilityDraft
   useEffect(() => {
-    const key = selectedDate.toISOString().slice(0, 10)
+    const key = formatDateLocal(selectedDate)
     const avail = availabilityByDate[key]
     setAvailabilityDraft({
       isAvailable: !!avail,
@@ -115,7 +124,7 @@ export default function AdminManagePage() {
 
   // availability dirty tracking
   useEffect(() => {
-    const key = selectedDate.toISOString().slice(0, 10)
+    const key = formatDateLocal(selectedDate)
     const avail = availabilityByDate[key]
     setAvailabilityDirty(
       availabilityDraft.isAvailable !== !!avail ||
@@ -139,19 +148,17 @@ export default function AdminManagePage() {
     setAvailabilityError(null)
     try {
       // save availability for selectedDate
-      const key = selectedDate.toISOString().slice(0, 10)
+      const key = formatDateLocal(selectedDate)
+      // convert to UTC midnight for the business timezone
+      const utcDate = fromZonedTime(key, TIMEZONE)
       const res = await fetch("/api/availability", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ date: key, timeSlots: availabilityDraft.isAvailable ? availabilityDraft.selectedTimeSlots : [] })
+        body: JSON.stringify({ date: utcDate.toISOString(), timeSlots: availabilityDraft.isAvailable ? availabilityDraft.selectedTimeSlots : [] })
       })
       if (!res.ok) throw new Error("Failed to save availability")
-      // refetch availability for this date
-      const data = await res.json()
-      setAvailabilityByDate(prev => ({
-        ...prev,
-        [key]: data.available ? { timeSlots: data.timeSlots } : undefined
-      }))
+      // refetch availability for the month
+      await fetchMonthData(selectedDate)
       setAvailabilityDirty(false)
     } catch {
       setAvailabilityError("Failed to save availability")
@@ -194,9 +201,9 @@ export default function AdminManagePage() {
   }
 
   // menu preview for selected date (active and available that day)
-  const dayOfWeek = selectedDate.toLocaleDateString("en-US", { weekday: "short" })
+  const dayOfWeek = DAY_NAMES[selectedDate.getDay()]
   const menuPreview = menuItems.filter(item => item.active && item.availableDays.includes(dayOfWeek))
-  const key = selectedDate.toISOString().slice(0, 10)
+  const key = formatDateLocal(selectedDate)
   const ordersCount = ordersByDate[key] || 0
   const hasOrders = ordersCount > 0
 
@@ -218,6 +225,7 @@ export default function AdminManagePage() {
               ordersByDate={ordersByDate}
               availabilityByDate={availabilityByDate}
               customerViewRange={customerViewRange}
+              formatDateLocal={formatDateLocal}
             />
             <UnsavedChangesBanner message={availabilityError || "You have unsaved changes"} visible={availabilityDirty || !!availabilityError} />
             <DateDetailsPane
@@ -242,6 +250,7 @@ export default function AdminManagePage() {
               isDirty={menuDirty}
               onSave={handleMenuSave}
               isSaving={menuSaving}
+              dayNames={DAY_NAMES}
             />
           </div>
         </div>

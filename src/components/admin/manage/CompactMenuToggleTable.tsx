@@ -13,11 +13,10 @@ interface CompactMenuToggleTableProps {
   isDirty: boolean
   onSave: () => void
   isSaving: boolean
+  dayNames: string[]
 }
 
-const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun']
-
-export default function CompactMenuToggleTable({ menuItems, onChange, isDirty, onSave, isSaving }: CompactMenuToggleTableProps) {
+export default function CompactMenuToggleTable({ menuItems, onChange, isDirty, onSave, isSaving, dayNames }: CompactMenuToggleTableProps) {
   const [localItems, setLocalItems] = useState<MenuItemToggle[]>([])
 
   useEffect(() => {
@@ -55,7 +54,7 @@ export default function CompactMenuToggleTable({ menuItems, onChange, isDirty, o
           <tr>
             <th className="text-left">Item</th>
             <th>Active</th>
-            {days.map(day => <th key={day}>{day}</th>)}
+            {dayNames.map(day => <th key={day}>{day}</th>)}
           </tr>
         </thead>
         <tbody>
@@ -65,7 +64,7 @@ export default function CompactMenuToggleTable({ menuItems, onChange, isDirty, o
               <td>
                 <input type="checkbox" checked={item.active} onChange={() => handleToggle(item.id, 'active')} />
               </td>
-              {days.map(day => (
+              {dayNames.map(day => (
                 <td key={day}>
                   <input type="checkbox" checked={item.availableDays.includes(day)} onChange={() => handleToggle(item.id, 'day', day)} />
                 </td>
