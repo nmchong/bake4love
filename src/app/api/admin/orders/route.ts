@@ -1,27 +1,33 @@
 import { prisma } from "@/lib/prisma"
 import { NextRequest, NextResponse } from "next/server"
+import { startOfDay } from "date-fns"
 
-// display all orders for a given date /api/admin/orders?date=
+// display all orders upcoming or past
+// GET /api/admin/orders?tab=upcoming|past
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
-  const dateParam = searchParams.get("date")
+  const tab = searchParams.get("tab") || "upcoming"
+  const today = startOfDay(new Date())
 
-  if (!dateParam) {
-    return NextResponse.json({ error: "Missing date parameter" }, { status: 400 })
-  }
-
-  const date = new Date(dateParam)
-  if (isNaN(date.getTime())) {
-    return NextResponse.json({ error: "Invalid date format" }, { status: 400 })
-  }
-
-  // get all orders for that date
-  const orders = await prisma.order.findMany({
-    where: {
+  let where = {}
+  if (tab === "upcoming") {
+    where = {
+      status: "paid",
       pickupDate: {
-        equals: date
+        gte: today
       }
-    },
+    }
+  } else if (tab === "past") {
+    where = {
+      OR: [
+        { status: "fulfilled" },
+        { pickupDate: { lt: today } }
+      ]
+    }
+  }
+
+  const orders = await prisma.order.findMany({
+    where,
     include: {
       orderItems: {
         include: {
@@ -30,7 +36,7 @@ export async function GET(req: NextRequest) {
       }
     },
     orderBy: {
-      pickupTime: 'asc'
+      pickupDate: 'asc',
     }
   })
 
