@@ -1,30 +1,6 @@
 import { format, parseISO } from "date-fns"
 import FulfillButton from "./FulfillButton"
-
-interface OrderItem {
-  id: string
-  quantity: number
-  variant: string
-  menuItem: {
-    id: string
-    name: string
-    price: number
-    halfPrice?: number
-  }
-}
-
-interface Order {
-  id: string
-  customerName: string
-  customerEmail: string
-  pickupDate: string
-  pickupTime: string
-  notes?: string
-  cost: number
-  status: string
-  createdAt: string
-  orderItems: OrderItem[]
-}
+import type { Order } from "@/types/order"
 
 interface OrderCardProps {
   order: Order
