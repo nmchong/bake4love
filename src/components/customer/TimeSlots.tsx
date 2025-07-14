@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { format } from 'date-fns'
-import { useCart } from '@/components/CartContext'
+import { useCart } from '@/components/customer/CartContext'
 
 type TimeSlotsProps = {
   selectedDate: Date; 

@@ -2,7 +2,7 @@
 
 import OrderForm, { OrderFormValues } from "@/components/OrderForm"
 import OrderSummary from "@/components/OrderSummary"
-import { useCart } from "@/components/CartContext"
+import { useCart } from "@/components/customer/CartContext"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { useState } from "react"

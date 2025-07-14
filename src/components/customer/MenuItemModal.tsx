@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { useCart } from "@/components/CartContext"
+import { useCart } from "@/components/customer/CartContext"
 import { MenuItem } from "@/types"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import Image from "next/image"

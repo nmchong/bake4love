@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation"
 import { Drawer, DrawerContent, DrawerTrigger, DrawerTitle } from "@/components/ui/drawer"
 import { Button } from "@/components/ui/button"
-import { useCart } from "@/components/CartContext"
+import { useCart } from "@/components/customer/CartContext"
 import { format, parseISO } from "date-fns"
 
 export default function Cart() {

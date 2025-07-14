@@ -1,13 +1,13 @@
 "use client"
 import { useState, useEffect } from "react"
-import CalendarRow from "@/components/CalendarRow"
-import HeroSection from "@/components/HeroSection"
-import TimeSlots from "@/components/TimeSlots"
-import MenuSection from "@/components/MenuSection"
+import CalendarRow from "@/components/customer/CalendarRow"
+import HeroSection from "@/components/customer/HeroSection"
+import TimeSlots from "@/components/customer/TimeSlots"
+import MenuSection from "@/components/customer/MenuSection"
 import { MenuItem } from "@prisma/client"
 import { format } from "date-fns"
-import Cart from "@/components/Cart"
-import { useCart } from "@/components/CartContext"
+import Cart from "@/components/customer/Cart"
+import { useCart } from "@/components/customer/CartContext"
 
 export default function HomePage() {
   const [selectedDate, setSelectedDate] = useState(new Date())
