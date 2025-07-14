@@ -5,6 +5,7 @@ import { Drawer, DrawerContent, DrawerTrigger, DrawerTitle } from "@/components/
 import { Button } from "@/components/ui/button"
 import { useCart } from "@/components/customer/CartContext"
 import { format, parseISO } from "date-fns"
+import { toZonedTime } from "date-fns-tz"
 
 export default function Cart() {
   const { cartItems, increment, decrement, removeItem, pickupDate, pickupTime } = useCart()
@@ -23,7 +24,7 @@ export default function Cart() {
         <DrawerTitle>Your Cart</DrawerTitle>
         <div className="mb-4 p-2 bg-gray-50 rounded text-sm">
           <div>
-            <span className="font-semibold">Pickup Date:</span> {pickupDate ? format(parseISO(pickupDate), 'EEEE, MMMM d, yyyy') : <span className="text-red-500">Not selected</span>}
+            <span className="font-semibold">Pickup Date:</span> {pickupDate ? format(toZonedTime(parseISO(pickupDate), 'America/Los_Angeles'), 'EEEE, MMMM d, yyyy') : <span className="text-red-500">Not selected</span>}
           </div>
           <div>
             <span className="font-semibold">Pickup Time:</span> {pickupTime ? pickupTime : <span className="text-red-500">Not selected</span>}

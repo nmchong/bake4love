@@ -5,6 +5,7 @@ import { useParams, useSearchParams } from "next/navigation"
 import { format, parseISO } from "date-fns"
 import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
+import { toZonedTime } from "date-fns-tz"
 
 interface OrderItem {
   id: string
@@ -118,7 +119,7 @@ export default function OrderPage() {
         <h2 className="font-semibold mb-2">Customer Information</h2>
         <p><strong>Name:</strong> {order.customerName}</p>
         <p><strong>Email:</strong> {order.customerEmail}</p>
-        <p><strong>Pickup Date:</strong> {format(parseISO(order.pickupDate), 'EEEE, MMMM d, yyyy')}</p>
+        <p><strong>Pickup Date:</strong> {format(toZonedTime(parseISO(order.pickupDate), 'America/Los_Angeles'), 'EEEE, MMMM d, yyyy')}</p>
         <p><strong>Pickup Time:</strong> {order.pickupTime}</p>
         {order.notes && <p><strong>Notes:</strong> {order.notes}</p>}
       </div>

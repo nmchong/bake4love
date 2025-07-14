@@ -1,4 +1,5 @@
 import { format, parseISO } from "date-fns"
+import { toZonedTime } from "date-fns-tz"
 import FulfillButton from "./FulfillButton"
 import type { Order } from "@/types/order"
 
@@ -18,7 +19,7 @@ export default function OrderCard({ order, onFulfilled }: OrderCardProps) {
         <span className="font-semibold">Customer:</span> {order.customerName} ({order.customerEmail})
       </div>
       <div className="mb-2">
-        <span className="font-semibold">Pickup:</span> {format(parseISO(order.pickupDate), 'PPP')} at {order.pickupTime}
+        <span className="font-semibold">Pickup:</span> {format(toZonedTime(parseISO(order.pickupDate), 'America/Los_Angeles'), 'PPP')} at {order.pickupTime}
       </div>
       {order.notes && (
         <div className="mb-2"><span className="font-semibold">Notes:</span> {order.notes}</div>

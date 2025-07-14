@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma"
 import { NextResponse } from "next/server"
+import { fromZonedTime } from "date-fns-tz"
 
 // create new order
 // POST /api/order
@@ -52,7 +53,7 @@ export async function POST(req: Request) {
       data: {
         customerEmail,
         customerName,
-        pickupDate: new Date(pickupDate),
+        pickupDate: fromZonedTime(pickupDate, "America/Los_Angeles"),
         pickupTime,
         notes,
         cost: totalCost,
