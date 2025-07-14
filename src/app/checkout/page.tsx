@@ -1,7 +1,7 @@
 "use client"
 
-import OrderForm, { OrderFormValues } from "@/components/OrderForm"
-import OrderSummary from "@/components/OrderSummary"
+import OrderForm, { OrderFormValues } from "@/components/customer/OrderForm"
+import OrderSummary from "@/components/customer/OrderSummary"
 import { useCart } from "@/components/customer/CartContext"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
