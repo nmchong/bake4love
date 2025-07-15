@@ -1,7 +1,9 @@
 import { format, parseISO } from "date-fns"
-import { toZonedTime } from "date-fns-tz"
+import { toZonedTime, format as formatTz } from "date-fns-tz"
 import FulfillButton from "./FulfillButton"
 import type { Order } from "@/types/order"
+
+const TIMEZONE = "America/Los_Angeles"
 
 interface OrderCardProps {
   order: Order
@@ -9,6 +11,8 @@ interface OrderCardProps {
 }
 
 export default function OrderCard({ order, onFulfilled }: OrderCardProps) {
+  const laPickupDate = toZonedTime(order.pickupDate, TIMEZONE)
+  const displayPickupDate = formatTz(laPickupDate, "PPP", { timeZone: TIMEZONE })
   return (
     <div className="border rounded-lg p-4 mb-4 bg-white shadow-sm">
       <div className="flex justify-between items-center mb-2">
@@ -19,7 +23,7 @@ export default function OrderCard({ order, onFulfilled }: OrderCardProps) {
         <span className="font-semibold">Customer:</span> {order.customerName} ({order.customerEmail})
       </div>
       <div className="mb-2">
-        <span className="font-semibold">Pickup:</span> {format(toZonedTime(parseISO(order.pickupDate), 'America/Los_Angeles'), 'PPP')} at {order.pickupTime}
+        <span className="font-semibold">Pickup:</span> {displayPickupDate} at {order.pickupTime}
       </div>
       {order.notes && (
         <div className="mb-2"><span className="font-semibold">Notes:</span> {order.notes}</div>

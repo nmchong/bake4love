@@ -13,7 +13,7 @@ interface EditMenuItemModalProps {
 }
 
 function isEqualMenuItem(a: Partial<MenuItem>, b: Partial<MenuItem>, ingredientsTextA: string, ingredientsTextB: string) {
-  // Compare all fields used in the form, including ingredients as text
+  // compare all fields used in the form, including ingredients as text
   return (
     (a.name || "") === (b.name || "") &&
     (a.description || "") === (b.description || "") &&
@@ -106,7 +106,7 @@ export default function EditMenuItemModal({ open, onOpenChange, menuItem, onSave
             </label>
             <input className="w-full border p-2" value={form.imageUrl || ''} onChange={e => handleChange('imageUrl', e.target.value)} placeholder="Image URL" />
             <div className="flex gap-2 flex-wrap">
-              {['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'].map(day => (
+              {['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'].map(day => (
                 <label key={day} className="flex items-center gap-1 text-xs">
                   <input type="checkbox" checked={form.availableDays?.includes(day) || false} onChange={e => {
                     const days = new Set(form.availableDays || [])

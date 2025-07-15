@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma'
 import { NextResponse } from 'next/server'
+import { fromZonedTime, toZonedTime } from 'date-fns-tz'
 
 // return list of menu items for given date
 // GET /api/menu?date=YYYY-MM-DD
@@ -15,26 +16,13 @@ export async function GET(req: Request) {
     return NextResponse.json(items)
   }
 
-  // parse date & day of week
-  const date = new Date(dateParam)
-  if (isNaN(date.getTime())) {
-    return NextResponse.json({ error: "Invalid date" }, { status: 400 })
-  }
-  const dayOfWeek = date.toLocaleDateString("en-US", { weekday: "long" })
+  const TIMEZONE = "America/Los_Angeles"
+  const laDate = fromZonedTime(dateParam, TIMEZONE)
+  const dayOfWeek = toZonedTime(laDate, TIMEZONE).toLocaleDateString("en-US", { weekday: "long", timeZone: TIMEZONE })
 
-  // get start and end of the day in UTC using Date.UTC
-  const [year, month, day] = dateParam.split('-').map(Number)
-  const startOfDay = new Date(Date.UTC(year, month - 1, day, 0, 0, 0))
-  const endOfDay = new Date(Date.UTC(year, month - 1, day + 1, 0, 0, 0))
-
-  // check if chef is available
+  // check if chef is available for this LA-local day
   const availability = await prisma.availability.findFirst({
-    where: {
-      date: {
-        gte: startOfDay,
-        lt: endOfDay,
-      }
-    }
+    where: { date: laDate }
   })
   if (!availability) {
     return NextResponse.json([])
@@ -50,5 +38,5 @@ export async function GET(req: Request) {
     }
   })
 
-   return NextResponse.json(items)
+  return NextResponse.json(items)
 }

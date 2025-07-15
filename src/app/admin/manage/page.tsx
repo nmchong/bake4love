@@ -21,7 +21,7 @@ interface Availability {
 }
 
 const TIMEZONE = "America/Los_Angeles"
-const DAY_NAMES = ['Sun','Mon','Tues','Wed','Thurs','Fri','Sat']
+const DAY_NAMES = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 
 export default function AdminManagePage() {
   // state
