@@ -45,18 +45,19 @@ export default function AdminManagePage() {
     end: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 13)
   }
 
-  // helper: get all dates in current month (in local timezone)
-  function getMonthDates(date: Date) {
-    const zoned = toZonedTime(date, TIMEZONE)
-    const year = zoned.getFullYear()
-    const month = zoned.getMonth()
-    const firstDay = toZonedTime(new Date(year, month, 1), TIMEZONE)
-    const lastDay = toZonedTime(new Date(year, month + 1, 0), TIMEZONE)
-    const days: Date[] = []
-    for (let d = new Date(firstDay); d <= lastDay; d.setDate(d.getDate() + 1)) {
-      days.push(new Date(d))
+  // helper: get all dates in the current calendar grid (rolling 35-day window, aligned to week start)
+  function getCalendarDates() {
+    const today = new Date();
+    const startRaw = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 7);
+    const start = new Date(startRaw);
+    start.setDate(start.getDate() - start.getDay());
+    const days: Date[] = [];
+    for (let i = 0; i < 35; i++) {
+      const d = new Date(start);
+      d.setDate(start.getDate() + i);
+      days.push(d);
     }
-    return days
+    return days;
   }
 
   // format date as yyyy-mm-dd in local timezone
@@ -64,8 +65,8 @@ export default function AdminManagePage() {
     return formatTz(toZonedTime(date, TIMEZONE), 'yyyy-MM-dd', { timeZone: TIMEZONE })
   }
 
-  // fetch all data for the current month
-  const fetchMonthData = useCallback(async (monthDate: Date) => {
+  // fetch all data for the current calendar grid
+  const fetchCalendarData = useCallback(async () => {
     // 1. fetch menu items
     const menuRes = await fetch("/api/admin/menu")
     if (!menuRes.ok) throw new Error("Failed to fetch menu items")
@@ -73,9 +74,9 @@ export default function AdminManagePage() {
     setMenuItems(menuData)
     setMenuItemsDraft(menuData)
 
-    // 2. fetch availability and orders for each date in the month
-    const monthDates = getMonthDates(monthDate)
-    const dateStrs = monthDates.map(d => formatDateLocal(d))
+    // 2. fetch availability and orders for each date in the calendar grid
+    const calendarDates = getCalendarDates();
+    const dateStrs = calendarDates.map(d => formatDateLocal(d));
     // availability
     const availResults = await Promise.all(dateStrs.map(async date => {
       const res = await fetch(`/api/availability?date=${date}`)
@@ -98,13 +99,13 @@ export default function AdminManagePage() {
     setLoading(true)
     setMenuError(null)
     setAvailabilityError(null)
-    fetchMonthData(selectedDate)
+    fetchCalendarData()
       .catch(() => {
         setMenuError("Failed to load data")
         setAvailabilityError("Failed to load data")
       })
       .finally(() => setLoading(false))
-  }, [fetchMonthData, selectedDate])
+  }, [fetchCalendarData])
 
   // when selectedDate or availabilityByDate changes, update availabilityDraft
   useEffect(() => {
@@ -158,7 +159,7 @@ export default function AdminManagePage() {
       })
       if (!res.ok) throw new Error("Failed to save availability")
       // refetch availability for the month
-      await fetchMonthData(selectedDate)
+      await fetchCalendarData()
       setAvailabilityDirty(false)
     } catch {
       setAvailabilityError("Failed to save availability")

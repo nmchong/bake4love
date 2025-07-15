@@ -45,14 +45,21 @@ export async function POST(req: Request) {
     // always use fromZonedTime for correct UTC date
     const zonedDate = fromZonedTime(date, "America/Los_Angeles")
 
-    // upsert (create if doesn't exist, else update)
-    await prisma.availability.upsert({
-      where: { date: zonedDate },
-      update: { timeSlots },
-      create: { date: zonedDate, timeSlots }
-    })
-
-    return NextResponse.json({ success: true })
+    if (!timeSlots.length) {
+      // if no timeslots, delete the availability for this date
+      await prisma.availability.deleteMany({
+        where: { date: zonedDate }
+      })
+      return NextResponse.json({ success: true, deleted: true })
+    } else {
+      // else upsert (create if doesn't exist, else update)
+      await prisma.availability.upsert({
+        where: { date: zonedDate },
+        update: { timeSlots },
+        create: { date: zonedDate, timeSlots }
+      })
+      return NextResponse.json({ success: true })
+    }
   } catch (error) {
     console.error("Error setting availability:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })

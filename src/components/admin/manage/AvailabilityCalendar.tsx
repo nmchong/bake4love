@@ -8,14 +8,17 @@ interface AvailabilityCalendarProps {
 }
 
 export default function AvailabilityCalendar({ selectedDate, onSelectDate, ordersByDate, availabilityByDate, customerViewRange, formatDateLocal }: AvailabilityCalendarProps) {
-  // calculate the days in the current month
-  const year = selectedDate.getFullYear()
-  const month = selectedDate.getMonth()
-  const firstDay = new Date(year, month, 1)
-  const lastDay = new Date(year, month + 1, 0)
-  const days: Date[] = []
-  for (let d = new Date(firstDay); d <= lastDay; d.setDate(d.getDate() + 1)) {
-    days.push(new Date(d))
+  // rolling 5-week (35-day) grid, aligned to correct day of week
+  const today = new Date();
+  const startRaw = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 7);
+  const start = new Date(startRaw);
+  start.setDate(start.getDate() - start.getDay());
+
+  const days: Date[] = [];
+  for (let i = 0; i < 35; i++) {
+    const d = new Date(start);
+    d.setDate(start.getDate() + i);
+    days.push(d);
   }
 
   // helper to determine color
@@ -40,25 +43,21 @@ export default function AvailabilityCalendar({ selectedDate, onSelectDate, order
     return ""
   }
 
-  // render calendar grid
-  const firstWeekday = firstDay.getDay()
-  const blanks = Array.from({ length: firstWeekday })
-
   return (
     <div>
       <div className="grid grid-cols-7 gap-1 mb-2 text-xs text-center">
         {['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d => <div key={d}>{d}</div>)}
       </div>
       <div className="grid grid-cols-7 gap-1">
-        {blanks.map((_, i) => <div key={i} />)}
         {days.map(date => {
           const key = formatDateLocal(date)
           const color = getColor(date)
           const isSelected = formatDateLocal(date) === formatDateLocal(selectedDate)
+          const inCustomerRange = date >= customerViewRange.start && date <= customerViewRange.end
           return (
             <button
               key={key}
-              className={`aspect-square rounded flex flex-col items-center justify-center border ${color} ${isSelected ? 'ring-2 ring-black' : ''}`}
+              className={`aspect-square rounded flex flex-col items-center justify-center border ${color} ${isSelected ? 'ring-2 ring-black' : ''} ${inCustomerRange ? 'border-1 border-black' : ''}`}
               onClick={() => onSelectDate(new Date(date))}
             >
               <span>{date.getDate()}</span>
