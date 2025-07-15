@@ -74,25 +74,29 @@ export default function AdminManagePage() {
     setMenuItems(menuData)
     setMenuItemsDraft(menuData)
 
-    // 2. fetch availability and orders for each date in the calendar grid
+    // 2. fetch availability for the calendar grid using the new range API
     const calendarDates = getCalendarDates();
     const dateStrs = calendarDates.map(d => formatDateLocal(d));
-    // availability
-    const availResults = await Promise.all(dateStrs.map(async date => {
-      const res = await fetch(`/api/availability?date=${date}`)
-      if (!res.ok) return [date, undefined]
-      const data = await res.json()
-      return [date, data.available ? { timeSlots: data.timeSlots } : undefined]
-    }))
-    setAvailabilityByDate(Object.fromEntries(availResults))
-    // orders
-    const orderResults = await Promise.all(dateStrs.map(async date => {
-      const res = await fetch(`/api/admin/orders?date=${date}`)
-      if (!res.ok) return [date, 0]
-      const data = await res.json()
-      return [date, Array.isArray(data.orders) ? data.orders.length : 0]
-    }))
-    setOrdersByDate(Object.fromEntries(orderResults))
+    const start = dateStrs[0];
+    const end = dateStrs[dateStrs.length - 1];
+    const availRes = await fetch(`/api/availability-range?start=${start}&end=${end}`);
+    if (!availRes.ok) throw new Error("Failed to fetch availability range");
+    const availArray = await availRes.json();
+    // Map to { [date]: { timeSlots } | undefined }
+    const availMap = Object.fromEntries(
+      availArray.map((a: { date: string; timeSlots: string[] | null }) => [a.date, a.timeSlots ? { timeSlots: a.timeSlots } : undefined])
+    );
+    setAvailabilityByDate(availMap);
+
+    // 3. fetch orders for the calendar grid using the new range API
+    const ordersRes = await fetch(`/api/admin/orders-range?start=${start}&end=${end}`);
+    if (!ordersRes.ok) throw new Error("Failed to fetch orders range");
+    const ordersArray = await ordersRes.json();
+    // map to { [date]: orderCount }
+    const ordersMap = Object.fromEntries(
+      ordersArray.map((o: { date: string; orderCount: number }) => [o.date, o.orderCount])
+    );
+    setOrdersByDate(ordersMap);
   }, [])
 
   useEffect(() => {
