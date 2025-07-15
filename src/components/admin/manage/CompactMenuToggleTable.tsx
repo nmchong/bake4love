@@ -24,24 +24,22 @@ export default function CompactMenuToggleTable({ menuItems, onChange, isDirty, o
   }, [menuItems])
 
   const handleToggle = (id: string, field: 'active' | 'day', day?: string) => {
-    let updated: MenuItemToggle[] = [];
-    setLocalItems(items => {
-      updated = items.map(item => {
-        if (item.id !== id) return item
-        if (field === 'active') return { ...item, active: !item.active }
-        if (field === 'day' && day) {
-          const set = new Set(item.availableDays)
-          if (set.has(day)) {
-            set.delete(day)
-          } else {
-            set.add(day)
-          }
-          return { ...item, availableDays: Array.from(set) }
+    // Compute the new value based on the current localItems
+    const updated = localItems.map(item => {
+      if (item.id !== id) return item
+      if (field === 'active') return { ...item, active: !item.active }
+      if (field === 'day' && day) {
+        const set = new Set(item.availableDays)
+        if (set.has(day)) {
+          set.delete(day)
+        } else {
+          set.add(day)
         }
-        return item
-      })
-      return updated
+        return { ...item, availableDays: Array.from(set) }
+      }
+      return item
     })
+    setLocalItems(updated)
     onChange(updated)
   }
 
