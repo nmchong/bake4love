@@ -7,6 +7,7 @@ import AvailabilityCalendar from "@/components/admin/manage/AvailabilityCalendar
 import DateDetailsPane from "@/components/admin/manage/DateDetailsPane"
 import CompactMenuToggleTable from "@/components/admin/manage/CompactMenuToggleTable"
 import UnsavedChangesBanner from "@/components/admin/manage/UnsavedChangesBanner"
+import OrdersForDate from "@/components/admin/manage/OrdersForDate"
 
 interface MenuItemToggle {
   id: string
@@ -257,6 +258,7 @@ export default function AdminManagePage() {
               isSaving={menuSaving}
               dayNames={DAY_NAMES}
             />
+            <OrdersForDate date={selectedDate} />
           </div>
         </div>
         )}
