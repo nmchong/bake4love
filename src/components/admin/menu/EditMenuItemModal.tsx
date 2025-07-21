@@ -3,6 +3,8 @@ import { Button } from "@/components/ui/button"
 import { useState, useEffect, useRef } from "react"
 import type { MenuItem } from "@/types"
 import { ConfirmationDialog } from "@/components/admin/shared/ConfirmationDialog"
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import Image from "next/image";
 
 interface EditMenuItemModalProps {
   open: boolean
@@ -34,6 +36,9 @@ export default function EditMenuItemModal({ open, onOpenChange, menuItem, onSave
   const initialForm = useRef<Partial<MenuItem>>({})
   const initialIngredientsText = useRef("")
   const [dirty, setDirty] = useState(false)
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const supabase = createClientComponentClient();
 
   useEffect(() => {
     if (menuItem) {
@@ -48,7 +53,20 @@ export default function EditMenuItemModal({ open, onOpenChange, menuItem, onSave
       initialIngredientsText.current = ""
     }
     setDirty(false)
+    setImageFile(null);
+    setImagePreview(null);
   }, [menuItem, open])
+
+  // preview selected image
+  useEffect(() => {
+    if (imageFile) {
+      const url = URL.createObjectURL(imageFile);
+      setImagePreview(url);
+      return () => URL.revokeObjectURL(url);
+    } else {
+      setImagePreview(null);
+    }
+  }, [imageFile]);
 
   useEffect(() => {
     setDirty(!isEqualMenuItem(form, initialForm.current, ingredientsText, initialIngredientsText.current))
@@ -65,10 +83,31 @@ export default function EditMenuItemModal({ open, onOpenChange, menuItem, onSave
     setForm(f => ({ ...f, ingredients: value.split("\n").map(s => s.trim()).filter(Boolean) }))
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    onSave({ ...form, ingredients: ingredientsText.split("\n").map(s => s.trim()).filter(Boolean) })
-    setDirty(false)
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    let newImageUrl = form.imageUrl;
+    if (imageFile && menuItem?.id) {
+      const ext = imageFile.name.split('.').pop()?.toLowerCase();
+      if (!['jpg', 'jpeg', 'png'].includes(ext || '')) {
+        alert('Only JPG and PNG files are allowed.');
+        return;
+      }
+      const filePath = `menu-images/${menuItem.id}.${ext}`;
+      const { error: uploadError } = await supabase.storage
+                  .from('menu-images')
+                  .upload(filePath, imageFile, { upsert: true, contentType: imageFile.type });
+      if (uploadError) {
+        alert('Failed to upload image: ' + uploadError.message);
+        return;
+      }
+      // get public image URL
+      const { data } = supabase.storage.from('menu-images').getPublicUrl(filePath);
+      newImageUrl = data.publicUrl;
+    }
+    onSave({ ...form, imageUrl: newImageUrl, ingredients: ingredientsText.split("\n").map(s => s.trim()).filter(Boolean) });
+    setDirty(false);
+    setImageFile(null);
+    setImagePreview(null);
   }
 
   const handleCancel = () => {
@@ -104,7 +143,30 @@ export default function EditMenuItemModal({ open, onOpenChange, menuItem, onSave
             <label className="flex items-center gap-2">
               <input type="checkbox" checked={!!form.active} onChange={e => handleChange('active', e.target.checked)} /> Active
             </label>
-            <input className="w-full border p-2" value={form.imageUrl || ''} onChange={e => handleChange('imageUrl', e.target.value)} placeholder="Image URL" />
+            {/* image upload section */}
+            <div>
+              <label className="block mb-1 font-medium">Image</label>
+              <input
+                type="file"
+                accept=".jpg,.jpeg,.png"
+                onChange={e => {
+                  const file = e.target.files?.[0] || null;
+                  setImageFile(file);
+                }}
+              />
+              <div className="flex gap-4 mt-2 items-center">
+                {/* preview new image if selected, else show current */}
+                {imagePreview ? (
+                  <Image src={imagePreview} alt="Preview" width={300} height={128} className="object-cover border" unoptimized />
+                ) : form.imageUrl ? (
+                  <Image src={form.imageUrl} alt="Current" width={300} height={128} className="object-cover border" unoptimized={form.imageUrl.startsWith('blob:') || form.imageUrl.startsWith('data:')} />
+                ) : (
+                  <div className="w-24 h-24 flex items-center justify-center bg-gray-100 border text-gray-400">No image</div>
+                )}
+              </div>
+            </div>
+            {/* keep the text input for imageUrl for now, but make it read-only if imageFile is selected */}
+            <input className="w-full border p-2" value={form.imageUrl || ''} onChange={e => handleChange('imageUrl', e.target.value)} placeholder="Image URL" readOnly={!!imageFile} />
             <div className="flex gap-2 flex-wrap">
               {['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'].map(day => (
                 <label key={day} className="flex items-center gap-1 text-xs">
