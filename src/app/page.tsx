@@ -20,19 +20,23 @@ export default function HomePage() {
   // fetch availability for the next 14 days
   useEffect(() => {
     const fetchAvailability = async () => {
-      const result: { [key: string]: boolean } = {}
-      for (let i = 0; i < 14; i++) {
-        const date = new Date()
-        date.setDate(date.getDate() + i)
-        const iso = format(date, 'yyyy-MM-dd')
-        const res = await fetch(`/api/availability?date=${iso}`)
-        const data = await res.json()
-        result[iso] = data.available
+      const today = new Date();
+      const start = format(today, 'yyyy-MM-dd');
+      const endDate = new Date(today);
+      endDate.setDate(today.getDate() + 13);
+      const end = format(endDate, 'yyyy-MM-dd');
+      const res = await fetch(`/api/availability-range?start=${start}&end=${end}`);
+      const data = await res.json();
+      // data is an array of { date, timeSlots }
+      // treat as available if timeSlots is not null
+      const result: { [key: string]: boolean } = {};
+      for (const entry of data) {
+        result[entry.date] = entry.timeSlots !== null;
       }
-      setAvailableDates(result)
-    }
-    fetchAvailability()
-  }, [])
+      setAvailableDates(result);
+    };
+    fetchAvailability();
+  }, []);
 
   // fetch menu items for selectedDate
   useEffect(() => {
