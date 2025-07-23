@@ -45,37 +45,33 @@
 
 :root {
   --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --background: #FDF6E3; /* Warm Cream */
+  --foreground: #4A2F1B; /* Deep Coffee */
+  --card: #FAF7ED; /* Pale Sand for cards/sub-background */
+  --card-foreground: #4A2F1B; /* Deep Coffee */
+  --popover: #FAF7ED; /* Pale Sand */
+  --popover-foreground: #4A2F1B; /* Deep Coffee */
+  --primary: #A4551E; /* Rustic Brown */
+  --primary-foreground: #FFFDF5; /* Cream White */
+  --secondary: #FAF7ED; /* Pale Sand */
+  --secondary-foreground: #6B4C32; /* Warm Taupe */
+  --muted: #FAF7ED; /* Pale Sand */
+  --muted-foreground: #6B4C32; /* Warm Taupe */
+  --accent: #FAF7ED; /* Pale Sand */
+  --accent-foreground: #4A2F1B; /* Deep Coffee */
+  --destructive: #843C12; /* Earth Clay (for destructive/hover) */
+  --border: #E5DED6; /* Slightly darker sand for borders */
+  --input: #E5DED6; /* Slightly darker sand for inputs */
+  --ring: #A4551E; /* Rustic Brown for focus ring */
+  --sidebar: #FAF7ED; /* Pale Sand */
+  --sidebar-foreground: #4A2F1B; /* Deep Coffee */
+  --sidebar-primary: #A4551E; /* Rustic Brown */
+  --sidebar-primary-foreground: #FFFDF5; /* Cream White */
+  --sidebar-accent: #FAF7ED; /* Pale Sand */
+  --sidebar-accent-foreground: #4A2F1B; /* Deep Coffee */
+  --sidebar-border: #E5DED6; /* Slightly darker sand for borders */
+  --sidebar-ring: #A4551E; /* Rustic Brown for focus ring */
+  --link: #4B5B66; /* Dusty Slate */
 }
 
 .dark {
@@ -118,5 +114,13 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+  a {
+    color: var(--link);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  a:hover {
+    color: #843C12; /* Earth Clay for hover */
   }
 }

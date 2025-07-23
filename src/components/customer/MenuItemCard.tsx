@@ -13,7 +13,7 @@ interface Props {
 // single menu item
 export default function MenuItemCard({ item, onClick }: Props) {
   return (
-    <Card onClick={onClick} className="cursor-pointer hover:shadow-lg">
+    <Card onClick={onClick} className="cursor-pointer hover:shadow-lg bg-[#F3E9D7]">
       <CardContent className="p-4">
         <Image
           src={item.imageUrl || "https://placehold.co/300x128"}
@@ -22,8 +22,9 @@ export default function MenuItemCard({ item, onClick }: Props) {
           height={128}
           className="w-full h-32 object-cover rounded-md mb-2"
         />
-        <h3 className="text-lg font-semibold">{item.name}</h3>
-        <p className="text-sm text-gray-500">
+
+        <h3 className="text-lg font-semibold text-[#4A2F1B]">{item.name}</h3>
+        <p className="text-sm text-[#6B4C32]">
           {item.availableDays?.join(", ") || ""}
         </p>
         <p className="font-bold mt-1">${(item.price / 100).toFixed(2)}</p>

@@ -14,11 +14,12 @@ export default function MenuSection({ items, selectedDate }: MenuSectionProps) {
 
   if (!items || items.length === 0) {
     return (
-      <div className="text-center text-gray-500 mt-10">
+      <div className="text-center text-[#6B4C32] mt-10">
         No menu items available for this date.
       </div>
     )
   }
+
 
   return (
     <>

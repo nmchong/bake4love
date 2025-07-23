@@ -6,6 +6,8 @@ import { format, parseISO } from "date-fns"
 import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
 import { toZonedTime } from "date-fns-tz"
+import Image from "next/image";
+
 
 interface OrderItem {
   id: string
@@ -32,6 +34,7 @@ interface Order {
   orderItems: OrderItem[]
 }
 
+
 export default function OrderPage() {
   const params = useParams()
   const searchParams = useSearchParams()
@@ -45,6 +48,7 @@ export default function OrderPage() {
   const isCanceled = searchParams.get("canceled") === "1"
 
   useEffect(() => {
+    // get order (using id) from api
     const fetchOrder = async () => {
       try {
         const res = await fetch(`/api/order/${orderId}`)
@@ -71,10 +75,11 @@ export default function OrderPage() {
     }
   }, [orderId])
 
+
   if (loading) {
     return (
       <div className="max-w-2xl mx-auto p-6">
-        <div className="text-center">Loading order...</div>
+        <div className="text-center text-[#6B4C32]">Loading order...</div>
       </div>
     )
   }
@@ -82,83 +87,86 @@ export default function OrderPage() {
   if (error || !order) {
     return (
       <div className="max-w-2xl mx-auto p-6">
-        <div className="text-center text-red-500 mb-4">{error || "Order not found"}</div>
-        <Button onClick={() => router.push("/")}>Back to Menu</Button>
+        <div className="text-center text-[#843C12] mb-4">{error || "Order not found"}</div>
+        <Button onClick={() => router.push("/")} variant="outline">
+          Back to Menu
+        </Button>
       </div>
     )
   }
 
+
   return (
-    <div className="max-w-2xl mx-auto p-6">
-      {/* Status Messages */}
-      {isSuccess && (
-        <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-          <h2 className="text-green-800 font-semibold mb-2">Payment Successful!</h2>
-          <p className="text-green-700">Your order has been confirmed. We&apos;ll see you soon!</p>
-        </div>
-      )}
-      
-      {isCanceled && (
-        <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-          <h2 className="text-yellow-800 font-semibold mb-2">Payment Canceled</h2>
-          <p className="text-yellow-700">Your order is still pending. You can complete payment later.</p>
-        </div>
-      )}
-
-      {/* Order Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold mb-2">Order #{order.id.slice(0, 8)}</h1>
-        <div className="text-gray-600">
-          <p>Status: <span className="font-semibold capitalize">{order.status}</span></p>
-          <p>Placed: {format(parseISO(order.createdAt), 'PPP')}</p>
-        </div>
+    <div className="max-w-2xl mx-auto p-4 md:p-8">
+      {/* bakery icon/header & success/cancel msg */}
+      <div className="flex flex-col items-center mb-6">
+        <Image src="/globe.svg" alt="Bakery Logo" width={48} height={48} className="mb-2" />
+        <h1 className="text-2xl md:text-3xl font-bold text-[#A4551E] mb-4">Thank you for your order!</h1>
+        {isSuccess && (
+          <div className="mb-2 px-4 py-4 rounded bg-green-50 border border-green-200 text-green-800 text-center w-full max-w-md">
+            <span className="font-semibold">Payment Successful!</span><br />Your order has been confirmed. We&apos;ll see you soon!
+          </div>
+        )}
+        {isCanceled && (
+          <div className="mb-2 px-4 py-2 rounded bg-yellow-50 border border-yellow-200 text-yellow-800 text-center w-full max-w-md">
+            <span className="font-semibold">Payment Canceled</span><br />Your order is still pending. You can complete payment later.
+          </div>
+        )}
       </div>
 
-      {/* Customer Info */}
-      <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-        <h2 className="font-semibold mb-2">Customer Information</h2>
-        <p><strong>Name:</strong> {order.customerName}</p>
-        <p><strong>Email:</strong> {order.customerEmail}</p>
-        <p><strong>Pickup Date:</strong> {format(toZonedTime(parseISO(order.pickupDate), 'America/Los_Angeles'), 'EEEE, MMMM d, yyyy')}</p>
-        <p><strong>Pickup Time:</strong> {order.pickupTime}</p>
-        {order.notes && <p><strong>Notes:</strong> {order.notes}</p>}
-      </div>
+      {/* main card */}
+      <div className="bg-[#FAF7ED] rounded-2xl shadow-md p-6 md:p-8 border border-[#E5DED6]">
+        {/* order header */}
+        <div className="mb-4 flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+          <div>
+            <div className="text-lg font-bold text-[#4A2F1B] mb-1">Order <span className="text-[#A4551E]">#{order.id.slice(0, 8)}</span></div>
+            <div className="text-sm text-[#6B4C32]">Status: <span className="font-semibold capitalize text-[#A4551E]">{order.status}</span></div>
+            <div className="text-sm text-[#6B4C32]">Placed: {format(parseISO(order.createdAt), 'PPP')}</div>
+          </div>
+        </div>
 
-      {/* Order Items */}
-      <div className="mb-6">
-        <h2 className="font-semibold mb-4">Order Items</h2>
-        <div className="space-y-3">
-          {order.orderItems.map((item) => (
-            <div key={item.id} className="flex justify-between items-center p-3 border rounded-lg">
-              <div>
-                <p className="font-medium">{item.menuItem.name}</p>
-                <p className="text-sm text-gray-600">
-                  {item.variant} • Qty: {item.quantity}
-                </p>
+        {/* customer info */}
+        <div className="mb-6 p-4 rounded-xl bg-[#FFFDF5] border border-[#E5DED6]">
+          <h2 className="font-semibold mb-2 text-[#4A2F1B]">Customer Information</h2>
+          <p><span className="font-semibold">Name:</span> {order.customerName}</p>
+          <p><span className="font-semibold">Email:</span> {order.customerEmail}</p>
+          <p><span className="font-semibold">Pickup Date:</span> {format(toZonedTime(parseISO(order.pickupDate), 'America/Los_Angeles'), 'EEEE, MMMM d, yyyy')}</p>
+          <p><span className="font-semibold">Pickup Time:</span> {order.pickupTime}</p>
+          {order.notes && <p><span className="font-semibold">Notes:</span> {order.notes}</p>}
+        </div>
+
+        {/* order items */}
+        <div className="mb-6">
+          <h2 className="font-semibold mb-4 text-[#4A2F1B]">Order Items</h2>
+          <div className="space-y-3">
+            {order.orderItems.map((item) => (
+              <div key={item.id} className="flex justify-between items-center p-3 rounded-lg border border-[#E5DED6] bg-[#FFFDF5]">
+                <div>
+                  <p className="font-medium text-[#4A2F1B]">{item.menuItem.name}</p>
+                  <p className="text-sm text-[#6B4C32]">{item.variant} • Qty: {item.quantity}</p>
+                </div>
+                <div className="text-right">
+                  <p className="font-medium text-[#4A2F1B]">
+                    ${((item.variant === "half" ? item.menuItem.halfPrice ?? 0 : item.menuItem.price) * item.quantity / 100).toFixed(2)}
+                  </p>
+                </div>
               </div>
-              <div className="text-right">
-                <p className="font-medium">
-                  ${((item.variant === "half" ? item.menuItem.halfPrice ?? 0 : item.menuItem.price) * item.quantity / 100).toFixed(2)}
-                </p>
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      </div>
 
-      {/* Total */}
-      <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-        <div className="flex justify-between items-center text-lg font-semibold">
+        {/* total cost */}
+        <div className="mb-6 p-4 rounded-xl bg-[#FFFDF5] border border-[#E5DED6] flex justify-between items-center text-lg font-semibold text-[#4A2F1B]">
           <span>Total:</span>
           <span>${(order.cost / 100).toFixed(2)}</span>
         </div>
-      </div>
 
-      {/* Actions */}
-      <div className="flex gap-4">
-        <Button onClick={() => router.push("/")} variant="outline">
-          Back to Menu
-        </Button>
+        {/* back to menu */}
+        <div className="flex gap-4 justify-end">
+          <Button onClick={() => router.push("/")}>
+            Back to Menu
+          </Button>
+        </div>
       </div>
     </div>
   )

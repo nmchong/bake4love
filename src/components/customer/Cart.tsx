@@ -7,11 +7,13 @@ import { useCart } from "@/components/customer/CartContext"
 import { format, parseISO } from "date-fns"
 import { toZonedTime } from "date-fns-tz"
 
+
 export default function Cart() {
   const { cartItems, increment, decrement, removeItem, pickupDate, pickupTime } = useCart()
   const total = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
   const router = useRouter()
   const canCheckout = cartItems.length > 0 && pickupDate && pickupTime
+
 
   return (
     <Drawer direction="right">
@@ -20,16 +22,18 @@ export default function Cart() {
           🛒 Cart ({cartItems.length})
         </Button>
       </DrawerTrigger>
-      <DrawerContent className="w-full max-w-sm ml-auto h-full p-6">
+
+      <DrawerContent className="w-full max-w-sm ml-auto h-full p-6 bg-[#FAF7ED]">
         <DrawerTitle>Your Cart</DrawerTitle>
-        <div className="mb-4 p-2 bg-gray-50 rounded text-sm">
+        <div className="mb-4 p-2 bg-[#FAF7ED] rounded text-sm text-[#4A2F1B]">
           <div>
-            <span className="font-semibold">Pickup Date:</span> {pickupDate ? format(toZonedTime(parseISO(pickupDate), 'America/Los_Angeles'), 'EEEE, MMMM d, yyyy') : <span className="text-red-500">Not selected</span>}
+            <span className="font-semibold text-[#4A2F1B]">Pickup Date:</span> {pickupDate ? format(toZonedTime(parseISO(pickupDate), 'America/Los_Angeles'), 'EEEE, MMMM d, yyyy') : <span className="text-red-500">Not selected</span>}
           </div>
           <div>
-            <span className="font-semibold">Pickup Time:</span> {pickupTime ? pickupTime : <span className="text-red-500">Not selected</span>}
+            <span className="font-semibold text-[#4A2F1B]">Pickup Time:</span> {pickupTime ? pickupTime : <span className="text-red-500">Not selected</span>}
           </div>
         </div>
+
         {cartItems.length === 0 ? (
           <p>Your cart is empty.</p>
         ) : (
@@ -39,7 +43,7 @@ export default function Cart() {
                 <span>{item.name} ({item.variant})</span>
                 <div className="flex items-center gap-1">
                   <Button size="icon" variant="outline" onClick={() => decrement(item.id, item.variant)}>-</Button>
-                  <span className="w-6 text-center">{item.quantity}</span>
+                  <span className="w-6 text-center text-[#4A2F1B]">{item.quantity}</span>
                   <Button size="icon" variant="outline" onClick={() => increment(item.id, item.variant)}>+</Button>
                   <Button size="icon" variant="ghost" onClick={() => removeItem(item.id, item.variant)}>&times;</Button>
                 </div>
@@ -48,6 +52,7 @@ export default function Cart() {
             ))}
           </ul>
         )}
+
         <div className="mt-4 flex justify-between font-semibold">
           <span>Total:</span>
           <span>${(total / 100).toFixed(2)}</span>
@@ -57,6 +62,7 @@ export default function Cart() {
         )}
         <Button className="mt-6 w-full" onClick={() => router.push("/checkout")} disabled={!canCheckout}>Proceed to Checkout</Button>
       </DrawerContent>
+
     </Drawer>
   )
 }

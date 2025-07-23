@@ -7,7 +7,8 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { useState } from "react"
 
-function CheckoutPageContent() {
+
+export default function CheckoutPage() {
   const { cartItems, pickupDate, pickupTime, resetCart } = useCart()
   const router = useRouter()
   const [form, setForm] = useState<OrderFormValues>({ name: "", email: "", notes: "" })
@@ -25,7 +26,7 @@ function CheckoutPageContent() {
     setError(null)
     setSubmitting(true)
     try {
-      // 1. create the order
+      // create the order
       const orderRes = await fetch("/api/order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -49,7 +50,7 @@ function CheckoutPageContent() {
         return
       }
 
-      // 2. create stripe checkout session
+      // create stripe checkout session
       const checkoutRes = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -62,7 +63,7 @@ function CheckoutPageContent() {
         return
       }
 
-      // 3. redirect tos stripe checkout
+      // redirect to stripe checkout
       resetCart()
       window.location.href = checkoutData.url
     } catch {
@@ -73,17 +74,16 @@ function CheckoutPageContent() {
 
   return (
     <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6 p-4">
-      <button className="mb-4 text-blue-600 underline" onClick={() => router.back()}>← Back to Menu</button>
+      <button className="mb-4 text-[#4B5B66] underline" onClick={() => router.back()}>← Back to Menu</button>
+
       <OrderForm values={form} onChange={setForm} />
       <OrderSummary cartItems={cartItems} />
+
       <Button className="mt-4" onClick={handleSubmit} disabled={!canSubmit}>
         {submitting ? "Creating Checkout Session..." : "Proceed to Payment"}
       </Button>
-      {error && <div className="col-span-2 text-red-500 mt-2">{error}</div>}
+
+      {error && <div className="col-span-2 text-[#843C12] mt-2">{error}</div>}
     </div>
   )
-}
-
-export default function CheckoutPage() {
-  return <CheckoutPageContent />
 }

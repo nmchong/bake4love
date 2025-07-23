@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "../styles/globals.css";
 import { CartProvider } from "@/components/customer/CartContext";
+import Footer from "@/components/customer/Footer";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -14,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Joan's Bakery",
+  title: "Bake4Love",
   description: "Homemade goods with love",
 };
 
@@ -30,6 +31,7 @@ export default function RootLayout({
       >
         <CartProvider>
           {children}
+          <Footer />
         </CartProvider>
       </body>
     </html>

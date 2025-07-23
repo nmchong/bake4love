@@ -16,6 +16,7 @@ export default function TimeSlots({ selectedDate }: TimeSlotsProps) {
   const [error, setError] = useState(false)
   const { pickupTime, setPickupTime } = useCart()
 
+  // show timeslots for selected date
   useEffect(() => {
     if (!selectedDate) return
 
@@ -40,8 +41,8 @@ export default function TimeSlots({ selectedDate }: TimeSlotsProps) {
   }, [selectedDate])
 
   if (loading) return <p className="mt-4">Loading times...</p>
-  if (error) return <p className="mt-4 text-red-500">Failed to load time slots.</p>
-  if (timeSlots.length === 0) return <p className="mt-4">No available time slots for this day.</p>
+  if (error) return <p className="mt-4 text-[#843C12]">Failed to load time slots.</p>
+  if (timeSlots.length === 0) return <p className="mt-4 text-[#6B4C32]">No available time slots for this day.</p>
 
   return (
     <div className="mt-4 flex flex-wrap gap-2">

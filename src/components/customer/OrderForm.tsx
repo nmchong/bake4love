@@ -18,7 +18,8 @@ export default function OrderForm({ values, onChange }: OrderFormProps) {
 
   return (
     <div className="p-4 space-y-4">
-      <h2 className="text-xl font-semibold">Customer Info</h2>
+      <h2 className="text-xl font-semibold text-[#4A2F1B]">Customer Info</h2>
+
       <div className="space-y-2">
         <input
           type="text"
@@ -41,6 +42,7 @@ export default function OrderForm({ values, onChange }: OrderFormProps) {
           onChange={(e) => handleChange("notes", e.target.value)}
         />
       </div>
+
     </div>
   )
 }
