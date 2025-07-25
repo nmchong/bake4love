@@ -6,7 +6,8 @@ import { format, parseISO, addMinutes, parse, format as formatDate } from "date-
 import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
 import { toZonedTime } from "date-fns-tz"
-import Image from "next/image";
+import Image from "next/image"
+import { useCart } from "@/components/customer/CartContext"
 
 
 interface OrderItem {
@@ -39,9 +40,11 @@ export default function OrderPage() {
   const params = useParams()
   const searchParams = useSearchParams()
   const router = useRouter()
+  const { resetCart, restoreCartFromOrder } = useCart()
   const [order, setOrder] = useState<Order | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [processingCancel, setProcessingCancel] = useState(false)
 
   const orderId = params.id as string
   const isSuccess = searchParams.get("success") === "1"
@@ -75,6 +78,38 @@ export default function OrderPage() {
     }
   }, [orderId])
 
+  // handle order cancellation (cancel when on Stripe checkout page) - restore cart & delete order
+  useEffect(() => {
+    const handleCancellation = async () => {
+      if (isCanceled && order && !processingCancel) {
+        setProcessingCancel(true)
+        try {
+          // restore cart from order data
+          restoreCartFromOrder(order.orderItems, order.pickupDate, order.pickupTime)
+          
+          // del cancelled order form db
+          await fetch(`/api/order/${orderId}`, { method: "DELETE" })
+          
+          // redirect back to menu
+          router.push("/checkout")
+        } catch (error) {
+          console.error("Error handling cancellation:", error)
+          setError("Failed to restore cart. Please try again.")
+        } finally {
+          setProcessingCancel(false)
+        }
+      }
+    }
+
+    handleCancellation()
+  }, [isCanceled, order, orderId, router, restoreCartFromOrder, processingCancel])
+
+  // handle successful payment - reset cart
+  useEffect(() => {
+    if (isSuccess) {
+      resetCart()
+    }
+  }, [isSuccess, resetCart])
 
   if (loading) {
     return (
@@ -91,6 +126,15 @@ export default function OrderPage() {
         <Button onClick={() => router.push("/")} variant="outline">
           Back to Menu
         </Button>
+      </div>
+    )
+  }
+
+  // show loading state while processing cancellation
+  if (processingCancel) {
+    return (
+      <div className="max-w-2xl mx-auto p-6">
+        <div className="text-center text-[#6B4C32]">Restoring your cart...</div>
       </div>
     )
   }
@@ -115,7 +159,7 @@ export default function OrderPage() {
         )}
         {isCanceled && (
           <div className="mb-2 px-4 py-2 rounded bg-yellow-50 border border-yellow-200 text-yellow-800 text-center w-full max-w-md">
-            <span className="font-semibold">Payment Canceled</span><br />Your order is still pending. You can complete payment later.
+            <span className="font-semibold">Payment Canceled</span><br />Your cart has been restored. You can complete your order later.
           </div>
         )}
       </div>

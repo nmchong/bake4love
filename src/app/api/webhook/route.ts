@@ -42,6 +42,7 @@ export async function POST(req: Request) {
         data: { status: "paid" }
       })
 
+      // cart will be reset on client-side when user visits success page
       return NextResponse.json({ success: true, orderId })
     }
 

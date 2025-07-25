@@ -9,7 +9,7 @@ import { useState } from "react"
 
 
 export default function CheckoutPage() {
-  const { cartItems, pickupDate, pickupTime, resetCart } = useCart()
+  const { cartItems, pickupDate, pickupTime } = useCart()
   const router = useRouter()
   const [form, setForm] = useState<OrderFormValues>({ name: "", email: "", notes: "" })
   const [submitting, setSubmitting] = useState(false)
@@ -64,7 +64,6 @@ export default function CheckoutPage() {
       }
 
       // redirect to stripe checkout
-      resetCart()
       window.location.href = checkoutData.url
     } catch {
       setError("Something went wrong. Please try again.")
@@ -74,7 +73,7 @@ export default function CheckoutPage() {
 
   return (
     <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6 p-4">
-      <button className="mb-4 text-[#4B5B66] underline" onClick={() => router.back()}>← Back to Menu</button>
+      <button className="mb-4 text-[#4B5B66] underline" onClick={() => router.push("/")}>← Back to Menu</button>
 
       <OrderForm values={form} onChange={setForm} />
       <OrderSummary cartItems={cartItems} />

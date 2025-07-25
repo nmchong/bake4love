@@ -1,5 +1,5 @@
 'use client'
-import React, { createContext, useContext, useState, useEffect } from "react"
+import React, { createContext, useContext, useState, useEffect, useCallback } from "react"
 
 export type CartItem = {
   id: string
@@ -20,6 +20,7 @@ interface CartContextType {
   increment: (id: string, variant: "full" | "half") => void
   decrement: (id: string, variant: "full" | "half") => void
   removeItem: (id: string, variant: "full" | "half") => void
+  restoreCartFromOrder: (orderItems: { menuItem: { id: string; name: string; price: number; halfPrice?: number }; quantity: number; variant: string }[], pickupDate: string, pickupTime: string) => void
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined)
@@ -63,10 +64,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
   }, [cartItems, pickupDate, pickupTime, hydrated])
 
-  const resetCart = () => {
+  const resetCart = useCallback(() => {
     setCartItems([])
     setPickupTime(null)
-  }
+  }, [])
 
   const addToCart = (item: Omit<CartItem, "quantity">, quantity: number = 1) => {
     setCartItems(prev => {
@@ -105,6 +106,26 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     setCartItems(prev => prev.filter(item => !(item.id === id && item.variant === variant)))
   }
 
+  // restore cart when order cancelled (going back from Stripe checkout page)
+  const restoreCartFromOrder = (orderItems: { menuItem: { id: string; name: string; price: number; halfPrice?: number }; quantity: number; variant: string }[], pickupDate: string, pickupTime: string) => {
+    // reset cart
+    setCartItems([])
+    
+    // add all items from order
+    for (const item of orderItems) {
+      addToCart({
+        id: item.menuItem.id,
+        name: item.menuItem.name,
+        price: item.variant === "half" ? (item.menuItem.halfPrice ?? 0) : item.menuItem.price,
+        variant: item.variant as "full" | "half"
+      }, item.quantity)
+    }
+    
+    // set pickup date/time
+    setPickupDate(pickupDate)
+    setPickupTime(pickupTime)
+  }
+
   // show loading state while hydrating
   if (!hydrated) {
     return <div className="min-h-screen flex items-center justify-center">Loading...</div>
@@ -121,7 +142,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       addToCart, 
       increment, 
       decrement, 
-      removeItem 
+      removeItem,
+      restoreCartFromOrder
     }}>
       {children}
     </CartContext.Provider>

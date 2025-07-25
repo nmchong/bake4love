@@ -30,3 +30,32 @@ export async function GET(
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }
+
+
+// DELETE /api/order/[id]
+export async function DELETE(
+  req: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params
+
+    // check if order exists first
+    const order = await prisma.order.findUnique({
+      where: { id }
+    })
+    if (!order) {
+      return NextResponse.json({ success: true, message: "Order not found or already deleted" })
+    }
+
+    // del order & all order items
+    await prisma.order.delete({
+      where: { id }
+    })
+
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error("Error deleting order:", error)
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+  }
+}
