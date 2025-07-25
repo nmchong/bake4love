@@ -8,6 +8,7 @@ import { MenuItem } from "@prisma/client"
 import { format } from "date-fns"
 import Cart from "@/components/customer/Cart"
 import { useCart } from "@/components/customer/CartContext"
+import NoAvailabilityBanner from "@/components/customer/NoAvailabilityBanner";
 
 
 export default function HomePage() {
@@ -22,9 +23,11 @@ export default function HomePage() {
   useEffect(() => {
     const fetchAvailability = async () => {
       const today = new Date();
-      const start = format(today, 'yyyy-MM-dd');
-      const endDate = new Date(today);
-      endDate.setDate(today.getDate() + 13);
+      const startDate = new Date(today);
+      startDate.setDate(today.getDate() + 4); // start 4 days from now
+      const start = format(startDate, 'yyyy-MM-dd');
+      const endDate = new Date(startDate);
+      endDate.setDate(startDate.getDate() + 13); // 14 days from new start
       const end = format(endDate, 'yyyy-MM-dd');
       const res = await fetch(`/api/availability-range?start=${start}&end=${end}`);
       const data = await res.json();
@@ -73,11 +76,27 @@ export default function HomePage() {
     setPendingDate(null)
   }
 
+  // Determine if all visible days are unavailable
+  const visibleDates = (() => {
+    const today = new Date();
+    const start = new Date(today);
+    start.setDate(today.getDate() + 4);
+    return Array.from({ length: 14 }, (_, i) => {
+      const d = new Date(start);
+      d.setDate(start.getDate() + i);
+      return d;
+    });
+  })();
+  const allUnavailable = visibleDates.every(date => {
+    const iso = format(date, 'yyyy-MM-dd');
+    return !availableDates[iso];
+  });
+
 
   return (
     <>
       <HeroSection />
-
+      {allUnavailable && <NoAvailabilityBanner />}
       <CalendarRow
         selectedDate={selectedDate}
         onSelect={handleDateSelect}

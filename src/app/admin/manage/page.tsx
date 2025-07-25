@@ -39,11 +39,11 @@ export default function AdminManagePage() {
   const [availabilityError, setAvailabilityError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
-  // customer view range: today to 14 days from today
+  // customer view range: 4 days from now to 18 days from now (14 days from new start)
   const today = new Date()
   const customerViewRange = {
-    start: new Date(today.getFullYear(), today.getMonth(), today.getDate()),
-    end: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 13)
+    start: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 4),
+    end: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 17)
   }
 
   // helper: get all dates in the current calendar grid (rolling 35-day window, aligned to week start)

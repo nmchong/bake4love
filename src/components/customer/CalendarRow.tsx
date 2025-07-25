@@ -21,7 +21,8 @@ export default function CalendarRow({
   // set calendar dates
   useEffect(() => {
     const today = new Date()
-    const next14 = Array.from({ length: 14 }, (_, i) => addDays(today, i))
+    const start = addDays(today, 4)
+    const next14 = Array.from({ length: 14 }, (_, i) => addDays(start, i))
     setDates(next14)
   }, [])
 
