@@ -108,6 +108,23 @@
   --sidebar-ring: oklch(0.556 0 0);
 }
 
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #E5DED6 #FAF7ED;
+}
+.custom-scrollbar::-webkit-scrollbar {
+  height: 10px;
+  background: #FAF7ED;
+  border-radius: 8px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #E5DED6;
+  border-radius: 8px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #A4551E;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

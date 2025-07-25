@@ -5,11 +5,13 @@ import MenuItemModal from "./MenuItemModal"
 
 interface MenuSectionProps {
   items: MenuItem[]
-  selectedDate: string
+  selectedDate?: string
+  onMenuItemClick?: (item: MenuItem) => void
+  disableAddToCart?: boolean
 }
 
 // render menu section (all menu items)
-export default function MenuSection({ items, selectedDate }: MenuSectionProps) {
+export default function MenuSection({ items, selectedDate, onMenuItemClick, disableAddToCart }: MenuSectionProps) {
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null)
 
   if (!items || items.length === 0) {
@@ -20,16 +22,16 @@ export default function MenuSection({ items, selectedDate }: MenuSectionProps) {
     )
   }
 
-
   return (
     <>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mt-6">
         {items.map((item) => (
-          <MenuItemCard key={item.id} item={item} onClick={() => setSelectedItem(item)} />
+          <MenuItemCard key={item.id} item={item} onClick={() => onMenuItemClick ? onMenuItemClick(item) : setSelectedItem(item)} />
         ))}
       </div>
-      {selectedItem && (
-        <MenuItemModal menuItem={selectedItem} onClose={() => setSelectedItem(null)} selectedDate={selectedDate} />
+
+      {selectedItem && !onMenuItemClick && (
+        <MenuItemModal menuItem={selectedItem} onClose={() => setSelectedItem(null)} selectedDate={selectedDate} disableAddToCart={disableAddToCart} />
       )}
     </>
   )

@@ -7,12 +7,13 @@ import Image from "next/image"
 interface Props {
   menuItem: MenuItem,
   onClose: () => void,
-  selectedDate: string // yyyy-MM-dd format
+  selectedDate?: string // yyyy-MM-dd format, optional
+  disableAddToCart?: boolean
 }
 
 
 // popup modal when clicking on menu item
-export default function MenuItemModal({ menuItem, onClose, selectedDate }: Props) {
+export default function MenuItemModal({ menuItem, onClose, selectedDate, disableAddToCart }: Props) {
   const { cartItems, pickupDate, setPickupDate, addToCart, resetCart } = useCart()
   const [variant, setVariant] = useState<"full" | "half">("full")
   const [quantity, setQuantity] = useState(1)
@@ -23,11 +24,12 @@ export default function MenuItemModal({ menuItem, onClose, selectedDate }: Props
 
   // try to add (show date warning if needed)
   const tryAdd = () => {
-    if (cartItems.length > 0 && pickupDate && pickupDate !== selectedDate) {
+    const date = selectedDate || "";
+    if (cartItems.length > 0 && pickupDate && pickupDate !== date) {
       setPendingAdd({ variant, quantity })
       setShowDateWarning(true)
     } else {
-      doAdd(variant, quantity, selectedDate)
+      doAdd(variant, quantity, date)
     }
   }
 
@@ -47,10 +49,11 @@ export default function MenuItemModal({ menuItem, onClose, selectedDate }: Props
 
   // switch pickup date
   const confirmSwitchDate = () => {
+    const date = selectedDate || "";
     if (pendingAdd) {
       resetCart()
-      setPickupDate(selectedDate)
-      doAdd(pendingAdd.variant, pendingAdd.quantity, selectedDate)
+      setPickupDate(date)
+      doAdd(pendingAdd.variant, pendingAdd.quantity, date)
       setShowDateWarning(false)
       setPendingAdd(null)
     }
@@ -94,12 +97,14 @@ export default function MenuItemModal({ menuItem, onClose, selectedDate }: Props
             <label className="font-semibold">Portion:</label>
             <div className="flex gap-4 mt-1">
               <label>
-                <input type="radio" name="portion" value="full" checked={variant === "full"} onChange={() => setVariant("full")}/>
+                <input type="radio" name="portion" value="full" checked={variant === "full"} onChange={() => setVariant("full")}
+                  disabled={disableAddToCart} />
                 Full
               </label>
               {canHalf && (
                 <label>
-                  <input type="radio" name="portion" value="half" checked={variant === "half"} onChange={() => setVariant("half")}/>
+                  <input type="radio" name="portion" value="half" checked={variant === "half"} onChange={() => setVariant("half")}
+                    disabled={disableAddToCart} />
                   Half
                 </label>
               )}
@@ -108,11 +113,11 @@ export default function MenuItemModal({ menuItem, onClose, selectedDate }: Props
 
           <div className="mt-2">
             <label className="font-semibold">Quantity:</label>
-            <input type="number" min={1} value={quantity} onChange={e => setQuantity(Number(e.target.value))} className="ml-2 w-16 border rounded p-1" />
+            <input type="number" min={1} value={quantity} onChange={e => setQuantity(Number(e.target.value))} className="ml-2 w-16 border rounded p-1" disabled={disableAddToCart} />
           </div>
 
-          <button className="mt-4 px-4 py-2 bg-[#A4551E] text-[#FFFDF5] rounded hover:bg-[#843C12]" onClick={tryAdd}>
-            Add to Cart
+          <button className="mt-4 px-4 py-2 bg-[#A4551E] text-[#FFFDF5] rounded hover:bg-[#843C12] disabled:opacity-60" onClick={tryAdd} disabled={disableAddToCart}>
+            {disableAddToCart ? "Select pickup date to order" : "Add to Cart"}
           </button>
         </div>
 
