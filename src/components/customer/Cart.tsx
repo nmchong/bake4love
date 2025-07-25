@@ -4,8 +4,9 @@ import { useRouter } from "next/navigation"
 import { Drawer, DrawerContent, DrawerTrigger, DrawerTitle } from "@/components/ui/drawer"
 import { Button } from "@/components/ui/button"
 import { useCart } from "@/components/customer/CartContext"
-import { format, parseISO, addMinutes, parse, format as formatDate } from "date-fns"
+import { format, parseISO, addMinutes, parse, format as formatDate, addDays, isBefore, isAfter, startOfDay } from "date-fns"
 import { toZonedTime } from "date-fns-tz"
+import { useState } from "react"
 
 
 export default function Cart() {
@@ -13,11 +14,22 @@ export default function Cart() {
   const total = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
   const router = useRouter()
   const canCheckout = cartItems.length > 0 && pickupDate && pickupTime
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   function getTimeRangeLabel(time: string) {
     const start = parse(time, 'HH:mm', new Date())
     const end = addMinutes(start, 30)
     return `${formatDate(start, 'h:mm')}-${formatDate(end, 'h:mm')}${formatDate(end, 'a').toLowerCase()}`
+  }
+
+  // determine if date is in orderable window (4-17 days from today)
+  function isOrderableDate(dateStr: string | null) {
+    if (!dateStr) return false;
+    const today = startOfDay(new Date());
+    const date = startOfDay(parseISO(dateStr));
+    const minDate = addDays(today, 4);
+    const maxDate = addDays(today, 17);
+    return !isBefore(date, minDate) && !isAfter(date, maxDate);
   }
 
 
@@ -30,14 +42,20 @@ export default function Cart() {
       </DrawerTrigger>
 
       <DrawerContent className="w-full max-w-sm ml-auto h-full p-6 bg-[#FAF7ED]">
-        <DrawerTitle>Your Cart</DrawerTitle>
-        <div className="mb-4 p-2 bg-[#FAF7ED] rounded text-sm text-[#4A2F1B]">
-          <div>
-            <span className="font-semibold text-[#4A2F1B]">Pickup Date:</span> {pickupDate ? format(toZonedTime(parseISO(pickupDate), 'America/Los_Angeles'), 'EEEE, MMMM d, yyyy') : <span className="text-red-500">Not selected</span>}
-          </div>
-          <div>
-            <span className="font-semibold text-[#4A2F1B]">Pickup Time:</span> {pickupTime ? getTimeRangeLabel(pickupTime) : <span className="text-red-500">Not selected</span>}
-          </div>
+        <DrawerTitle className="text-xl mb-2">Your Cart</DrawerTitle>
+        <div className="mb-4 p-2 bg-[#FAF7ED] rounded text-base text-[#4A2F1B]">
+          {cartItems.length === 0 ? (
+            <div className="text-[#6B4C32]">Add items to cart to select a pickup date and time.</div>
+          ) : (
+            <>
+              <div className="text-lg">
+                <span className="font-semibold text-[#4A2F1B]">Pickup Date:</span> {pickupDate ? format(toZonedTime(parseISO(pickupDate), 'America/Los_Angeles'), 'EEEE, MMMM d, yyyy') : <span className="text-red-500">Not selected</span>}
+              </div>
+              <div className="text-lg">
+                <span className="font-semibold text-[#4A2F1B]">Pickup Time:</span> {pickupTime ? getTimeRangeLabel(pickupTime) : <span className="text-red-500">Not selected</span>}
+              </div>
+            </>
+          )}
         </div>
 
         {cartItems.length === 0 ? (
@@ -63,10 +81,25 @@ export default function Cart() {
           <span>Total:</span>
           <span>${(total / 100).toFixed(2)}</span>
         </div>
+
+        {/* error messages */}
         {!canCheckout && (
           <div className="mt-2 text-red-500 text-sm">Select a pickup date and time to proceed to checkout.</div>
         )}
-        <Button className="mt-6 w-full" onClick={() => router.push("/checkout")} disabled={!canCheckout}>Proceed to Checkout</Button>
+        {errorMsg && (
+          <div className="mt-2 text-red-500 text-sm">{errorMsg}</div>
+        )}
+
+        <Button className="mt-6 w-full" onClick={() => {
+          setErrorMsg(null);
+          if (!canCheckout) return;
+          if (!isOrderableDate(pickupDate)) {
+            setErrorMsg('Unable to order for this date.');
+            return;
+          }
+          router.push("/checkout")
+        }} disabled={!canCheckout}>Proceed to Checkout</Button>
+
       </DrawerContent>
 
     </Drawer>

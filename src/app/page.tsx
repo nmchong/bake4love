@@ -63,14 +63,17 @@ export default function HomePage() {
 
   // fetch menu items for selectedDate
   useEffect(() => {
-    const fetchMenuItems = async () => {
-      const iso = format(selectedDate || new Date(), 'yyyy-MM-dd')
-      const res = await fetch(`/api/menu?date=${iso}`)
-      const data = await res.json()
-      setMenuItems(data || [])
+    // only fetch menu items when a specific date is selected (when not showing all items)
+    if (!showAllItems && selectedDate) {
+      const fetchMenuItems = async () => {
+        const iso = format(selectedDate, 'yyyy-MM-dd')
+        const res = await fetch(`/api/menu?date=${iso}`)
+        const data = await res.json()
+        setMenuItems(data || [])
+      }
+      fetchMenuItems()
     }
-    fetchMenuItems()
-  }, [selectedDate])
+  }, [selectedDate, showAllItems])
 
   // confirm switch pickup date
   const confirmSwitchDate = () => {
