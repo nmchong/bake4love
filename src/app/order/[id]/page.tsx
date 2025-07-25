@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useParams, useSearchParams } from "next/navigation"
-import { format, parseISO } from "date-fns"
+import { format, parseISO, addMinutes, parse, format as formatDate } from "date-fns"
 import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
 import { toZonedTime } from "date-fns-tz"
@@ -95,6 +95,12 @@ export default function OrderPage() {
     )
   }
 
+  function getTimeRangeLabel(time: string) {
+    const start = parse(time, 'HH:mm', new Date())
+    const end = addMinutes(start, 30)
+    return `${formatDate(start, 'h:mm')}-${formatDate(end, 'h:mm')}${formatDate(end, 'a').toLowerCase()}`
+  }
+
 
   return (
     <div className="max-w-2xl mx-auto p-4 md:p-8">
@@ -131,7 +137,7 @@ export default function OrderPage() {
           <p><span className="font-semibold">Name:</span> {order.customerName}</p>
           <p><span className="font-semibold">Email:</span> {order.customerEmail}</p>
           <p><span className="font-semibold">Pickup Date:</span> {format(toZonedTime(parseISO(order.pickupDate), 'America/Los_Angeles'), 'EEEE, MMMM d, yyyy')}</p>
-          <p><span className="font-semibold">Pickup Time:</span> {order.pickupTime}</p>
+          <p><span className="font-semibold">Pickup Time:</span> {getTimeRangeLabel(order.pickupTime)}</p>
           {order.notes && <p><span className="font-semibold">Notes:</span> {order.notes}</p>}
         </div>
 

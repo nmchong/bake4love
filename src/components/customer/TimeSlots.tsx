@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { format } from 'date-fns'
+import { format, parse, addMinutes, format as formatDate } from 'date-fns'
 import { useCart } from '@/components/customer/CartContext'
 
 type TimeSlotsProps = {
@@ -44,15 +44,28 @@ export default function TimeSlots({ selectedDate }: TimeSlotsProps) {
   if (error) return <p className="mt-4 text-[#843C12]">Failed to load time slots.</p>
   if (timeSlots.length === 0) return <p className="mt-4 text-[#6B4C32]">No available time slots for this day.</p>
 
+  // sort and format time slots as ranges
+  const sortedTimeSlots = [...timeSlots].sort((a, b) => {
+    const dateA = parse(a, 'HH:mm', new Date())
+    const dateB = parse(b, 'HH:mm', new Date())
+    return dateA.getTime() - dateB.getTime()
+  })
+
+  function getTimeRangeLabel(time: string) {
+    const start = parse(time, 'HH:mm', new Date())
+    const end = addMinutes(start, 30)
+    return `${formatDate(start, 'h:mm')}-${formatDate(end, 'h:mm')}${formatDate(end, 'a').toLowerCase()}`
+  }
+
   return (
     <div className="mt-4 flex flex-wrap gap-2">
-      {timeSlots.map((time) => (
+      {sortedTimeSlots.map((time) => (
         <Button
           key={time}
           variant={pickupTime === time ? "default" : "outline"}
           onClick={() => setPickupTime(time)}
         >
-          {time}
+          {getTimeRangeLabel(time)}
         </Button>
       ))}
     </div>
