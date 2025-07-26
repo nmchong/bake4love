@@ -2,6 +2,7 @@
 
 import OrderForm, { OrderFormValues } from "@/components/customer/OrderForm"
 import OrderSummary from "@/components/customer/OrderSummary"
+import TipsSection from "@/components/customer/TipsSection"
 import { useCart } from "@/components/customer/CartContext"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -12,6 +13,7 @@ export default function CheckoutPage() {
   const { cartItems, pickupDate, pickupTime } = useCart()
   const router = useRouter()
   const [form, setForm] = useState<OrderFormValues>({ name: "", email: "", notes: "" })
+  const [tipCents, setTipCents] = useState(200) // default to $2 tip
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -54,7 +56,7 @@ export default function CheckoutPage() {
       const checkoutRes = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ orderId: orderData.orderId })
+        body: JSON.stringify({ orderId: orderData.orderId, tipCents })
       })
       const checkoutData = await checkoutRes.json()
       if (!checkoutRes.ok || !checkoutData.url) {
@@ -76,7 +78,9 @@ export default function CheckoutPage() {
       <button className="mb-4 text-[#4B5B66] underline" onClick={() => router.push("/")}>← Back to Menu</button>
 
       <OrderForm values={form} onChange={setForm} />
-      <OrderSummary cartItems={cartItems} />
+      <OrderSummary cartItems={cartItems} tipCents={tipCents} />
+
+      <TipsSection tipCents={tipCents} onTipChange={setTipCents} />
 
       <Button className="mt-4" onClick={handleSubmit} disabled={!canSubmit}>
         {submitting ? "Creating Checkout Session..." : "Proceed to Payment"}

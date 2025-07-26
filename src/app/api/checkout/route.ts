@@ -21,7 +21,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
 export async function POST(req: Request) {
   try {
     const body = await req.json()
-    const { orderId } = body
+    const { orderId, tipCents = 0 } = body
     if (!orderId) {
       return NextResponse.json({ error: "Missing orderId" }, { status: 400 })
     }
@@ -56,12 +56,24 @@ export async function POST(req: Request) {
       quantity: item.quantity,
     }))
 
+    // add tip if provided
+    if (tipCents > 0) {
+      line_items.push({
+        price_data: {
+          currency: 'usd',
+          product_data: { name: 'Tip (optional)' },
+          unit_amount: tipCents,
+        },
+        quantity: 1,
+      });
+    }
+
     console.log("Line items created:", line_items.length)
 
     // create stripe checkout session
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
-      line_items,
+      line_items: line_items,
       mode: "payment",
       customer_email: order.customerEmail,
       success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/order/${order.id}?success=1`,
