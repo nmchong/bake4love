@@ -24,7 +24,13 @@ export async function GET(
       return NextResponse.json({ error: "Order not found" }, { status: 404 })
     }
 
-    return NextResponse.json(order)
+    // pickup address (in env)
+    const orderWithAddress = {
+      ...order,
+      pickupAddress: process.env.PICKUP_ADDRESS || "[Address not configured]"
+    }
+
+    return NextResponse.json(orderWithAddress)
   } catch (error) {
     console.error("Error fetching order:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })

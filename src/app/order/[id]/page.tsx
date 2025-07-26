@@ -34,6 +34,7 @@ interface Order {
   status: string
   createdAt: string
   orderItems: OrderItem[]
+  pickupAddress?: string
 }
 
 
@@ -163,6 +164,19 @@ export default function OrderPage() {
             <span className="font-semibold">Payment Canceled</span><br />Your cart has been restored. You can complete your order later.
           </div>
         )}
+      </div>
+
+      {/* pickup address message */}
+      <div className="mb-6 p-4 rounded-xl bg-[#FFFDF5] border border-[#E5DED6]">
+        <p className="text-[#4A2F1B] mb-2">
+          Pickup address: <span className="font-semibold">{order.pickupAddress || "[Address not configured]"}</span>
+        </p>
+        <p className="text-[#4A2F1B] mb-2">
+          Please arrive on <span className="font-semibold">{format(toZonedTime(parseISO(order.pickupDate), 'America/Los_Angeles'), 'MMMM d')}</span> between <span className="font-semibold">{getTimeRangeLabel(order.pickupTime)}</span>.
+        </p>
+        <p className="text-[#4A2F1B]">
+          You will receive a confirmation email.
+        </p>
       </div>
 
       {/* main card */}
