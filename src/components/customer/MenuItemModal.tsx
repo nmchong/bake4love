@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { useCart } from "@/components/customer/CartContext"
 import { MenuItem } from "@/types"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import Image from "next/image"
 
 interface Props {
@@ -64,62 +64,138 @@ export default function MenuItemModal({ menuItem, onClose, selectedDate, disable
     setPendingAdd(null)
   }
 
+  const incrementQuantity = () => setQuantity(prev => prev + 1)
+  const decrementQuantity = () => setQuantity(prev => Math.max(1, prev - 1))
+
 
   return (
     <Dialog open={true} onOpenChange={(open) => { if (!open) onClose() }}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{menuItem.name}</DialogTitle>
-          <DialogDescription>
-            Available on: {menuItem.availableDays?.join(", ") || ""}
-          </DialogDescription>
-        </DialogHeader>
+      <DialogContent className="max-w-md">
+        <DialogTitle className="sr-only">{menuItem.name}</DialogTitle>
+        
+        {/* title */}
+        <h2 className="text-2xl font-bold text-[#4A2F1B] mb-4">{menuItem.name}</h2>
 
-        <div className="flex flex-col gap-2 text-sm text-[#4A2F1B]">
-          <Image
-            src={menuItem.imageUrl || "/placeholder.jpg"}
-            alt={menuItem.name}
-            width={400}
-            height={250}
-            className="rounded-lg object-cover w-full h-[200px] mb-4"
-          />
+        {/* image */}
+        <Image
+          src={menuItem.imageUrl || "https://placehold.co/300x180"}
+          alt={menuItem.name}
+          width={300}
+          height={180}
+          className="w-full h-36 object-cover rounded-lg mb-4"
+        />
 
+        {/* description & ingredients */}
+        <div className="space-y-3 mb-6">
           {menuItem.description && (
-            <p><span className="font-semibold">Description:</span> {menuItem.description}</p>
+            <p className="text-[#4A2F1B]">{menuItem.description}</p>
           )}
-          <p><span className="font-semibold">Ingredients:</span> {menuItem.ingredients?.join(", ") || ""}</p>
-          <p><span className="font-semibold">Price:</span> ${menuItem.price / 100}</p>
-          {menuItem.hasHalfOrder && (
-            <p><span className="font-semibold">Half Price:</span> ${menuItem.halfPrice! / 100}</p>
-          )}
-
-          <div className="mt-4">
-            <label className="font-semibold">Portion:</label>
-            <div className="flex gap-4 mt-1">
-              <label>
-                <input type="radio" name="portion" value="full" checked={variant === "full"} onChange={() => setVariant("full")}
-                  disabled={disableAddToCart} />
-                Full
-              </label>
-              {canHalf && (
-                <label>
-                  <input type="radio" name="portion" value="half" checked={variant === "half"} onChange={() => setVariant("half")}
-                    disabled={disableAddToCart} />
-                  Half
-                </label>
-              )}
+          {menuItem.ingredients && menuItem.ingredients.length > 0 && (
+            <div>
+              <p className="font-semibold text-[#4A2F1B] mb-1">Ingredients:</p>
+              <p className="text-sm text-[#6B4C32]">{menuItem.ingredients.join(", ")}</p>
             </div>
-          </div>
-
-          <div className="mt-2">
-            <label className="font-semibold">Quantity:</label>
-            <input type="number" min={1} value={quantity} onChange={e => setQuantity(Number(e.target.value))} className="ml-2 w-16 border rounded p-1" disabled={disableAddToCart} />
-          </div>
-
-          <button className="mt-4 px-4 py-2 bg-[#A4551E] text-[#FFFDF5] rounded hover:bg-[#843C12] disabled:opacity-60" onClick={tryAdd} disabled={disableAddToCart}>
-            {disableAddToCart ? "Select pickup date to order" : "Add to Cart"}
-          </button>
+          )}
         </div>
+
+        {/* portion size */}
+        <div className="bg-[#F3E9D7] p-3 rounded-lg mb-6">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="font-semibold text-[#4A2F1B]">Portion Size</h3>
+            <span className="text-xs text-[#6B4C32] bg-[#E5DED6] px-2 py-1 rounded">Required</span>
+          </div>
+
+          <div className="space-y-2">
+            {/* full portion */}
+            <label className={`flex items-center justify-between p-3 rounded-md border cursor-pointer transition-colors ${
+              variant === "full" 
+                ? "bg-[#A4551E] text-white border-[#A4551E]" 
+                : "bg-white text-[#4A2F1B] border-[#E5DED6] hover:border-[#A4551E]"
+            }`}>
+              <div className="flex items-center gap-3">
+                <input 
+                  type="radio" 
+                  name="portion" 
+                  value="full" 
+                  checked={variant === "full"} 
+                  onChange={() => setVariant("full")}
+                  disabled={disableAddToCart}
+                  className="sr-only"
+                />
+                <div className="w-6 h-6 rounded-full border-2 flex items-center justify-center">
+                  {variant === "full" && <div className="w-3 h-3 bg-white rounded-full"></div>}
+                </div>
+                <div>
+                  <div className="font-medium">Full Portion</div>
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="font-semibold">${(menuItem.price / 100).toFixed(2)}</div>
+              </div>
+            </label>
+
+            {/* half portion */}
+            {canHalf && (
+              <label className={`flex items-center justify-between p-3 rounded-md border cursor-pointer transition-colors ${
+                variant === "half" 
+                  ? "bg-[#A4551E] text-white border-[#A4551E]" 
+                  : "bg-white text-[#4A2F1B] border-[#E5DED6] hover:border-[#A4551E]"
+              }`}>
+                <div className="flex items-center gap-3">
+                  <input 
+                    type="radio" 
+                    name="portion" 
+                    value="half" 
+                    checked={variant === "half"} 
+                    onChange={() => setVariant("half")}
+                    disabled={disableAddToCart}
+                    className="sr-only"
+                  />
+                  <div className="w-6 h-6 rounded-full border-2 flex items-center justify-center">
+                    {variant === "half" && <div className="w-3 h-3 bg-white rounded-full"></div>}
+                  </div>
+                  <div>
+                    <div className="font-medium">Half Portion</div>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="font-semibold">${(menuItem.halfPrice! / 100).toFixed(2)}</div>
+                </div>
+              </label>
+            )}
+          </div>
+        </div>
+
+        {/* quantity */}
+        <div className="mb-6">
+          <label className="font-semibold text-[#4A2F1B] mb-2 block">Quantity:</label>
+          <div className="flex items-center">
+            <button
+              onClick={decrementQuantity}
+              disabled={quantity <= 1 || disableAddToCart}
+              className="w-8 h-8 rounded border border-[#E5DED6] flex items-center justify-center hover:bg-[#F3E9D7] disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              -
+            </button>
+            <span className="w-12 text-center font-medium">{quantity}</span>
+            <button 
+              onClick={incrementQuantity}
+              disabled={quantity >= 10 ||disableAddToCart}
+              className="w-8 h-8 rounded border border-[#E5DED6] flex items-center justify-center hover:bg-[#F3E9D7] disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              +
+            </button>
+          </div>
+        </div>
+
+        {/* add to cart button */}
+        <button 
+          className="w-full px-4 py-3 bg-[#A4551E] text-[#FFFDF5] rounded-lg hover:bg-[#843C12] disabled:opacity-60 font-semibold" 
+          onClick={tryAdd} 
+          disabled={disableAddToCart}
+        >
+          {disableAddToCart ? "Select pickup date to order" : "Add to Cart"}
+        </button>
 
         {showDateWarning && (
           <div className="fixed inset-0 flex items-center justify-center bg-[#4A2F1B] bg-opacity-40 z-50">
