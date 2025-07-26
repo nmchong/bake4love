@@ -70,15 +70,24 @@ export default function Cart() {
         ) : (
           <ul className="space-y-2">
             {cartItems.map(item => (
-              <li key={item.id + item.variant} className="flex justify-between items-center gap-2">
-                <span>{item.name} ({item.variant})</span>
-                <div className="flex items-center gap-1">
-                  <Button size="icon" variant="outline" onClick={() => decrement(item.id, item.variant)}>-</Button>
-                  <span className="w-6 text-center text-[#4A2F1B]">{item.quantity}</span>
-                  <Button size="icon" variant="outline" onClick={() => increment(item.id, item.variant)}>+</Button>
-                  <Button size="icon" variant="ghost" onClick={() => removeItem(item.id, item.variant)}>&times;</Button>
+              <li key={item.id + item.variant} className="flex items-center">
+                {/* item name */}
+                <div className="flex-1 min-w-0">
+                  <span className="text-[#4A2F1B] font-medium">{item.name} ({item.variant})</span>
                 </div>
-                <span>${((item.price * item.quantity) / 100).toFixed(2)}</span>
+                
+                {/* quantity */}
+                <div className="flex items-center gap-1 flex-shrink-0">
+                  <Button size="icon" variant="outline" className="w-8 h-8" onClick={() => decrement(item.id, item.variant)}>-</Button>
+                  <span className="w-8 text-center text-[#4A2F1B] font-medium">{item.quantity}</span>
+                  <Button size="icon" variant="outline" className="w-8 h-8" onClick={() => increment(item.id, item.variant)}>+</Button>
+                  <Button size="icon" variant="ghost" className="w-8 h-8" onClick={() => removeItem(item.id, item.variant)}>&times;</Button>
+                </div>
+                
+                {/* price */}
+                <div className="flex-shrink-0 w-16 text-right">
+                  <span className="text-[#4A2F1B] font-medium">${((item.price * item.quantity) / 100).toFixed(2)}</span>
+                </div>
               </li>
             ))}
           </ul>

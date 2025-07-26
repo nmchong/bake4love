@@ -100,6 +100,11 @@ export default function CheckoutPage() {
             setCustomerInfo(newForm)
           }} />
 
+          {/* text above button */}
+          <p className="text-sm text-[#6B4C32] text-center">
+            General pickup location is Mountain View. Exact pickup address will be revealed upon payment and sent to your email. By submitting payment, you understand that all sales are final.
+          </p>
+
           {/* proceed to payment */}
           <Button 
             className="w-full h-12 text-lg" 
