@@ -69,6 +69,10 @@ export default function TipsSection({ tipCents, onTipChange }: TipsSectionProps)
           Custom
         </button>
       </div>
+
+      <p className="text-sm text-[#6B4C32] mt-2">
+        Tip: ${(tipCents / 100).toFixed(2)}
+      </p>
       
       {showCustomInput && (
         <div className="mt-3 flex gap-2 justify-end">
@@ -102,11 +106,6 @@ export default function TipsSection({ tipCents, onTipChange }: TipsSectionProps)
         </div>
       )}
       
-      {tipCents > 0 && (
-        <p className="text-sm text-[#6B4C32] mt-2">
-          Tip: ${(tipCents / 100).toFixed(2)}
-        </p>
-      )}
     </div>
   )
-} 
+}

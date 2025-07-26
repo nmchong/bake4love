@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { useCart } from "@/components/customer/CartContext"
 import { format, parseISO, addMinutes, parse, format as formatDate, addDays, isBefore, isAfter, startOfDay } from "date-fns"
 import { toZonedTime } from "date-fns-tz"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 
 
 export default function Cart() {
@@ -31,6 +31,13 @@ export default function Cart() {
     const maxDate = addDays(today, 17);
     return !isBefore(date, minDate) && !isAfter(date, maxDate);
   }
+
+  // clear error message when pickup date changes to a valid date
+  useEffect(() => {
+    if (pickupDate && isOrderableDate(pickupDate)) {
+      setErrorMsg(null);
+    }
+  }, [pickupDate]);
 
 
   return (

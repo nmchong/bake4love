@@ -23,7 +23,8 @@ export default function OrderSummary({ cartItems, tipCents = 0 }: OrderSummaryPr
     <div className="p-4 border rounded-md shadow-md bg-[#FAF7ED] text-[#4A2F1B]">
       <h2 className="text-xl font-bold mb-4">Order Summary</h2>
 
-      <ul className="divide-y divide-gray-200">
+      {/* cart items */}
+      <ul>
         {cartItems.map((item) => (
           <li key={`${item.id}-${item.variant}`} className="py-2 flex justify-between">
             <span>
@@ -34,7 +35,8 @@ export default function OrderSummary({ cartItems, tipCents = 0 }: OrderSummaryPr
         ))}
       </ul>
 
-      <div className="mt-4 space-y-2">
+      {/* subtotal, tip, total */}
+      <div className="mt-4 space-y-2 py-4 border-t border-gray-200">
         <div className="flex justify-between">
           <span>Subtotal:</span>
           <span>${(subtotal / 100).toFixed(2)}</span>
@@ -46,8 +48,8 @@ export default function OrderSummary({ cartItems, tipCents = 0 }: OrderSummaryPr
           </div>
         )}
         <div className="flex justify-between font-semibold text-lg border-t pt-2">
-          <span>Total:</span>
-          <span>${(totalCost / 100).toFixed(2)}</span>
+        <span>Total:</span>
+        <span>${(totalCost / 100).toFixed(2)}</span>
         </div>
       </div>
     </div>

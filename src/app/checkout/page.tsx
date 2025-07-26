@@ -74,22 +74,44 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6 p-4">
-      <button className="mb-4 text-[#4B5B66] underline" onClick={() => router.push("/")}>← Back to Menu</button>
+    <div className="max-w-6xl mx-auto p-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* left column */}
+        <div className="space-y-6">
+          {/* back to menu */}
+          <Button 
+            variant="outline" 
+            onClick={() => router.push("/")}
+            className="mb-6"
+          >
+            ← Back to Menu
+          </Button>
 
-      <OrderForm values={form} onChange={(newForm) => {
-        setForm(newForm)
-        setCustomerInfo(newForm)
-      }} />
-      <OrderSummary cartItems={cartItems} tipCents={tipCents} />
+          {/* order summary & tips */}
+          <OrderSummary cartItems={cartItems} tipCents={tipCents} />
+          <TipsSection tipCents={tipCents} onTipChange={setTipCents} />
+        </div>
 
-      <TipsSection tipCents={tipCents} onTipChange={setTipCents} />
+        {/* right column */}
+        <div className="space-y-6">
+          {/* customer info */}
+          <OrderForm values={form} onChange={(newForm) => {
+            setForm(newForm)
+            setCustomerInfo(newForm)
+          }} />
 
-      <Button className="mt-4" onClick={handleSubmit} disabled={!canSubmit}>
-        {submitting ? "Creating Checkout Session..." : "Proceed to Payment"}
-      </Button>
+          {/* proceed to payment */}
+          <Button 
+            className="w-full h-12 text-lg" 
+            onClick={handleSubmit} 
+            disabled={!canSubmit}
+          >
+            {submitting ? "Creating Checkout Session..." : "Proceed to Payment"}
+          </Button>
 
-      {error && <div className="col-span-2 text-[#843C12] mt-2">{error}</div>}
+          {error && <div className="text-[#843C12] mt-2">{error}</div>}
+        </div>
+      </div>
     </div>
   )
 }
