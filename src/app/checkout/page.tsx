@@ -10,10 +10,9 @@ import { useState } from "react"
 
 
 export default function CheckoutPage() {
-  const { cartItems, pickupDate, pickupTime } = useCart()
+  const { cartItems, pickupDate, pickupTime, customerInfo, tipCents, setCustomerInfo, setTipCents } = useCart()
   const router = useRouter()
-  const [form, setForm] = useState<OrderFormValues>({ name: "", email: "", notes: "" })
-  const [tipCents, setTipCents] = useState(200) // default to $2 tip
+  const [form, setForm] = useState<OrderFormValues>(customerInfo)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -38,6 +37,7 @@ export default function CheckoutPage() {
           pickupDate,
           pickupTime,
           notes: form.notes,
+          tipCents,
           cart: cartItems.map(item => ({
             menuItemId: item.id,
             quantity: item.quantity,
@@ -77,7 +77,10 @@ export default function CheckoutPage() {
     <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6 p-4">
       <button className="mb-4 text-[#4B5B66] underline" onClick={() => router.push("/")}>← Back to Menu</button>
 
-      <OrderForm values={form} onChange={setForm} />
+      <OrderForm values={form} onChange={(newForm) => {
+        setForm(newForm)
+        setCustomerInfo(newForm)
+      }} />
       <OrderSummary cartItems={cartItems} tipCents={tipCents} />
 
       <TipsSection tipCents={tipCents} onTipChange={setTipCents} />

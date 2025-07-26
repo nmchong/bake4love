@@ -30,6 +30,7 @@ interface Order {
   pickupTime: string
   notes?: string
   cost: number
+  tipCents: number
   status: string
   createdAt: string
   orderItems: OrderItem[]
@@ -205,10 +206,24 @@ export default function OrderPage() {
           </div>
         </div>
 
-        {/* total cost */}
-        <div className="mb-6 p-4 rounded-xl bg-[#FFFDF5] border border-[#E5DED6] flex justify-between items-center text-lg font-semibold text-[#4A2F1B]">
-          <span>Total:</span>
-          <span>${(order.cost / 100).toFixed(2)}</span>
+        {/* cost breakdown (subtotal, tip, total) */}
+        <div className="mb-6 p-4 rounded-xl bg-[#FFFDF5] border border-[#E5DED6]">
+          <div className="space-y-2">
+            <div className="flex justify-between">
+              <span>Subtotal:</span>
+              <span>${((order.cost - order.tipCents) / 100).toFixed(2)}</span>
+            </div>
+            {order.tipCents > 0 && (
+              <div className="flex justify-between">
+                <span>Tip:</span>
+                <span>${(order.tipCents / 100).toFixed(2)}</span>
+              </div>
+            )}
+            <div className="flex justify-between font-semibold text-lg border-t pt-2">
+              <span>Total:</span>
+              <span>${(order.cost / 100).toFixed(2)}</span>
+            </div>
+          </div>
         </div>
 
         {/* back to menu */}

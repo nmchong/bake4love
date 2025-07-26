@@ -9,12 +9,22 @@ export type CartItem = {
   quantity: number
 }
 
+interface CustomerInfo {
+  name: string
+  email: string
+  notes: string
+}
+
 interface CartContextType {
   cartItems: CartItem[]
   pickupDate: string | null
   pickupTime: string | null
+  customerInfo: CustomerInfo
+  tipCents: number
   setPickupDate: (date: string) => void
   setPickupTime: (time: string) => void
+  setCustomerInfo: (info: CustomerInfo) => void
+  setTipCents: (tipCents: number) => void
   resetCart: () => void
   addToCart: (item: Omit<CartItem, "quantity">, quantity?: number) => void
   increment: (id: string, variant: "full" | "half") => void
@@ -31,6 +41,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [cartItems, setCartItems] = useState<CartItem[]>([])
   const [pickupDate, setPickupDate] = useState<string | null>(null)
   const [pickupTime, setPickupTime] = useState<string | null>(null)
+  const [customerInfo, setCustomerInfo] = useState<CustomerInfo>({ name: "", email: "", notes: "" })
+  const [tipCents, setTipCents] = useState(200) // Default to $2
   const [hydrated, setHydrated] = useState(false)
 
   // rehydrate from localStorage on mount
@@ -42,6 +54,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         setCartItems(parsed.cartItems || [])
         setPickupDate(parsed.pickupDate || null)
         setPickupTime(parsed.pickupTime || null)
+        setCustomerInfo(parsed.customerInfo || { name: "", email: "", notes: "" })
+        setTipCents(parsed.tipCents || 200)
       }
     } catch (error) {
       console.error('Error loading cart from localStorage:', error)
@@ -57,16 +71,18 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     try {
       localStorage.setItem(
         STORAGE_KEY,
-        JSON.stringify({ cartItems, pickupDate, pickupTime })
+        JSON.stringify({ cartItems, pickupDate, pickupTime, customerInfo, tipCents })
       )
     } catch (error) {
       console.error('Error saving cart to localStorage:', error)
     }
-  }, [cartItems, pickupDate, pickupTime, hydrated])
+  }, [cartItems, pickupDate, pickupTime, customerInfo, tipCents, hydrated])
 
   const resetCart = useCallback(() => {
     setCartItems([])
     setPickupTime(null)
+    setCustomerInfo({ name: "", email: "", notes: "" })
+    setTipCents(200)
   }, [])
 
   const addToCart = (item: Omit<CartItem, "quantity">, quantity: number = 1) => {
@@ -136,8 +152,12 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       cartItems, 
       pickupDate, 
       pickupTime, 
+      customerInfo,
+      tipCents,
       setPickupDate, 
       setPickupTime, 
+      setCustomerInfo,
+      setTipCents,
       resetCart, 
       addToCart, 
       increment, 

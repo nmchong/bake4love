@@ -34,6 +34,7 @@ model Order {
   pickupTime     String
   notes          String?
   cost           Int
+  tipCents       Int        @default(0)
   status         String     @default("pending")
   createdAt      DateTime   @default(now())
 

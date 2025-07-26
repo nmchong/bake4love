@@ -84,7 +84,7 @@ export default function HeroSection() {
                   <div className="space-y-2">
                     <h4 className="font-semibold text-[#4A2F1B]">Contact Information</h4>
                     <p className="text-sm text-[#6B4C32]">
-                      Contact the baker directly or report a website error:
+                      Contact the baker directly for inquiries, feedback, or to report a website error:
                     </p>
                     <p className="text-sm font-semibold text-[#A4551E]">EMAIL@gmail.com</p>
                   </div>

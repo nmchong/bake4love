@@ -7,13 +7,14 @@ import { fromZonedTime } from "date-fns-tz"
 export async function POST(req: Request) {
   try {
     const body = await req.json()
-    const { customerEmail, customerName, pickupDate, pickupTime, notes, cart }: 
+    const { customerEmail, customerName, pickupDate, pickupTime, notes, cart, tipCents = 0 }: 
           { customerEmail: string;
             customerName: string;
             pickupDate: string;
             pickupTime: string;
             notes?: string;
             cart: { menuItemId: string; quantity: number; variant: "full" | "half" }[]
+            tipCents?: number
           } = body
 
     if (!customerEmail ||
@@ -56,7 +57,8 @@ export async function POST(req: Request) {
         pickupDate: fromZonedTime(pickupDate, "America/Los_Angeles"),
         pickupTime,
         notes,
-        cost: totalCost,
+        cost: totalCost + tipCents,
+        tipCents: tipCents,
         status: "pending",
         orderItems: {
           create: cart.map((item) => ({
