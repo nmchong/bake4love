@@ -58,7 +58,7 @@ export default function TimeSlots({ selectedDate }: TimeSlotsProps) {
   }
 
   return (
-    <div className="mt-4 flex flex-wrap gap-2">
+    <div className="mt-4 mx-6 flex flex-wrap gap-2">
       {sortedTimeSlots.map((time) => (
         <Button
           key={time}

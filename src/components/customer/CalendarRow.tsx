@@ -32,7 +32,7 @@ export default function CalendarRow({
 
 
   return (
-    <div className="flex flex-row items-center w-full px-2 mt-4">
+    <div className="flex flex-row items-center w-full px-6 mt-4">
       {/* all items button */}
       <button
         className={clsx(

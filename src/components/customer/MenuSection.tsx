@@ -16,7 +16,7 @@ export default function MenuSection({ items, selectedDate, onMenuItemClick, disa
 
   if (!items || items.length === 0) {
     return (
-      <div className="text-center text-[#6B4C32] mt-10">
+      <div className="text-center text-[#6B4C32] mt-10 px-4 pb-8">
         No menu items available for this date.
       </div>
     )
@@ -24,7 +24,7 @@ export default function MenuSection({ items, selectedDate, onMenuItemClick, disa
 
   return (
     <>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mt-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mt-6 px-4 pb-8">
         {items.map((item) => (
           <MenuItemCard key={item.id} item={item} onClick={() => onMenuItemClick ? onMenuItemClick(item) : setSelectedItem(item)} />
         ))}
