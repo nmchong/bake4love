@@ -1,17 +1,13 @@
 import { prisma } from "@/lib/prisma"
 import { NextRequest, NextResponse } from "next/server"
 
-type Params = {
-  params: {
-    id: string
-  }
-}
-
-
 // mark order as complete
 // PATCH /api/admin/order/[id]
-export async function PATCH(req: NextRequest, { params }: Params) {
-  const { id } = params
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params
 
   if (!id) {
     return NextResponse.json({ error: "Missing order ID" }, { status: 400 })
