@@ -6,11 +6,11 @@ import { Button } from "@/components/ui/button"
 import { useCart } from "@/components/customer/CartContext"
 import { format, parseISO, addMinutes, parse, format as formatDate, addDays, isBefore, isAfter, startOfDay } from "date-fns"
 import { toZonedTime } from "date-fns-tz"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 
 
 export default function Cart() {
-  const { cartItems, increment, decrement, removeItem, pickupDate, pickupTime } = useCart()
+  const { cartItems, increment, decrement, removeItem, pickupDate, pickupTime, resetCart } = useCart()
   const total = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
   const router = useRouter()
   const canCheckout = cartItems.length > 0 && pickupDate && pickupTime
@@ -34,10 +34,10 @@ export default function Cart() {
   }
 
   // check if date is still available (has time slots)
-  function isDateAvailable(dateStr: string | null) {
+  const isDateAvailable = useCallback((dateStr: string | null) => {
     if (!dateStr) return false;
     return availableDates[dateStr] === true;
-  }
+  }, [availableDates]);
 
   // fetch current availability
   useEffect(() => {
@@ -131,7 +131,24 @@ export default function Cart() {
           <div className="mt-2 text-red-500 text-sm">Select a pickup date and time to proceed to checkout.</div>
         )}
         {errorMsg && (
-          <div className="mt-2 text-red-500 text-sm">{errorMsg}</div>
+          <div className="mt-2 text-red-500 text-sm">
+            {errorMsg}
+            {errorMsg.includes('no longer available') && (
+              <div className="mt-2">
+                <p className="text-red-500 text-sm mb-2">Please clear your cart and re-add items.</p>
+                <Button 
+                  size="lg" 
+                  variant="outline" 
+                  onClick={() => {
+                    resetCart();
+                  }}
+                  className="text-md font-semibold"
+                >
+                  Clear Cart
+                </Button>
+              </div>
+            )}
+          </div>
         )}
 
         <Button className="mt-6 w-full" onClick={() => {
