@@ -15,6 +15,7 @@ export default function Cart() {
   const router = useRouter()
   const canCheckout = cartItems.length > 0 && pickupDate && pickupTime
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [availableDates, setAvailableDates] = useState<{ [key: string]: boolean }>({})
 
   function getTimeRangeLabel(time: string) {
     const start = parse(time, 'HH:mm', new Date())
@@ -32,12 +33,39 @@ export default function Cart() {
     return !isBefore(date, minDate) && !isAfter(date, maxDate);
   }
 
+  // check if date is still available (has time slots)
+  function isDateAvailable(dateStr: string | null) {
+    if (!dateStr) return false;
+    return availableDates[dateStr] === true;
+  }
+
+  // fetch current availability
+  useEffect(() => {
+    const fetchAvailability = async () => {
+      const today = new Date();
+      const startDate = new Date(today);
+      startDate.setDate(today.getDate() + 4);
+      const start = format(startDate, 'yyyy-MM-dd');
+      const endDate = new Date(startDate);
+      endDate.setDate(startDate.getDate() + 13);
+      const end = format(endDate, 'yyyy-MM-dd');
+      const res = await fetch(`/api/availability-range?start=${start}&end=${end}`);
+      const data = await res.json();
+      const result: { [key: string]: boolean } = {};
+      for (const entry of data) {
+        result[entry.date] = entry.timeSlots !== null;
+      }
+      setAvailableDates(result);
+    };
+    fetchAvailability();
+  }, []);
+
   // clear error message when pickup date changes to a valid date
   useEffect(() => {
-    if (pickupDate && isOrderableDate(pickupDate)) {
+    if (pickupDate && isOrderableDate(pickupDate) && isDateAvailable(pickupDate)) {
       setErrorMsg(null);
     }
-  }, [pickupDate]);
+  }, [pickupDate, availableDates, isDateAvailable]);
 
 
   return (
@@ -110,7 +138,11 @@ export default function Cart() {
           setErrorMsg(null);
           if (!canCheckout) return;
           if (!isOrderableDate(pickupDate)) {
-            setErrorMsg('Unable to order for this date.');
+            setErrorMsg('Unable to order for this date. Date is either closed or no longer available.');
+            return;
+          }
+          if (!isDateAvailable(pickupDate)) {
+            setErrorMsg('This date is no longer available. Please select a different pickup date.');
             return;
           }
           router.push("/checkout")

@@ -125,6 +125,16 @@ export default function HomePage() {
       {!showAllItems && selectedDate && (
         <TimeSlots selectedDate={selectedDate} />
       )}
+      {/* show banner when All Items is selected */}
+      {showAllItems && (
+        <div className="max-w-6xl mx-auto px-6 mt-4">
+          <div className="bg-[#F3E9D7] border border-[#E5DED6] rounded-lg p-3 text-center">
+            <p className="text-[#6B4C32] text-md font-semibold">
+              Select a pickup date above to add items to cart.
+            </p>
+          </div>
+        </div>
+      )}
 
       <MenuSection
         items={showAllItems ? allActiveMenuItems : menuItems}

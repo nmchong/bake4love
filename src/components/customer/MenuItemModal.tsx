@@ -102,14 +102,18 @@ export default function MenuItemModal({ menuItem, onClose, selectedDate, disable
         <div className="bg-[#F3E9D7] p-3 rounded-lg mb-6">
           <div className="flex items-center justify-between mb-3">
             <h3 className="font-semibold text-[#4A2F1B]">Portion Size</h3>
-            <span className="text-xs text-[#6B4C32] bg-[#E5DED6] px-2 py-1 rounded">Required</span>
+            {!disableAddToCart && (
+              <span className="text-xs text-[#6B4C32] bg-[#E5DED6] px-2 py-1 rounded">Required</span>
+            )}
           </div>
-
+          
           <div className="space-y-2">
             {/* full portion */}
             <label className={`flex items-center justify-between p-3 rounded-md border cursor-pointer transition-colors ${
-              variant === "full" 
+              variant === "full" && !disableAddToCart
                 ? "bg-[#A4551E] text-white border-[#A4551E]" 
+                : disableAddToCart
+                ? "bg-[#F5F5F5] text-[#6B4C32] border-[#E5DED6] cursor-not-allowed"
                 : "bg-white text-[#4A2F1B] border-[#E5DED6] hover:border-[#A4551E]"
             }`}>
               <div className="flex items-center gap-3">
@@ -122,8 +126,11 @@ export default function MenuItemModal({ menuItem, onClose, selectedDate, disable
                   disabled={disableAddToCart}
                   className="sr-only"
                 />
-                <div className="w-6 h-6 rounded-full border-2 flex items-center justify-center">
-                  {variant === "full" && <div className="w-3 h-3 bg-white rounded-full"></div>}
+                <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
+                  disableAddToCart ? "border-[#E5DED6]" : "border-[#4A2F1B]"
+                }`}>
+                  {variant === "full" && !disableAddToCart && <div className="w-3 h-3 bg-white rounded-full"></div>}
+                  {variant === "full" && disableAddToCart && <div className="w-3 h-3 bg-[#6B4C32] rounded-full"></div>}
                 </div>
                 <div>
                   <div className="font-medium">Full Portion</div>
@@ -137,8 +144,10 @@ export default function MenuItemModal({ menuItem, onClose, selectedDate, disable
             {/* half portion */}
             {canHalf && (
               <label className={`flex items-center justify-between p-3 rounded-md border cursor-pointer transition-colors ${
-                variant === "half" 
+                variant === "half" && !disableAddToCart
                   ? "bg-[#A4551E] text-white border-[#A4551E]" 
+                  : disableAddToCart
+                  ? "bg-[#F5F5F5] text-[#6B4C32] border-[#E5DED6] cursor-not-allowed"
                   : "bg-white text-[#4A2F1B] border-[#E5DED6] hover:border-[#A4551E]"
               }`}>
                 <div className="flex items-center gap-3">
@@ -151,8 +160,11 @@ export default function MenuItemModal({ menuItem, onClose, selectedDate, disable
                     disabled={disableAddToCart}
                     className="sr-only"
                   />
-                  <div className="w-6 h-6 rounded-full border-2 flex items-center justify-center">
-                    {variant === "half" && <div className="w-3 h-3 bg-white rounded-full"></div>}
+                  <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
+                    disableAddToCart ? "border-[#E5DED6]" : "border-[#4A2F1B]"
+                  }`}>
+                    {variant === "half" && !disableAddToCart && <div className="w-3 h-3 bg-white rounded-full"></div>}
+                    {variant === "half" && disableAddToCart && <div className="w-3 h-3 bg-[#6B4C32] rounded-full"></div>}
                   </div>
                   <div>
                     <div className="font-medium">Half Portion</div>
