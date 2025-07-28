@@ -40,10 +40,6 @@ export default function OrdersForDate({ date }: OrdersForDateProps) {
     fetchOrders()
   }, [fetchOrders])
 
-  const handleOrderFulfilled = () => {
-    fetchOrders()
-  }
-
   return (
     <div className="mt-8">
       <h2 className="text-lg font-bold mb-2">Orders for {iso}</h2>
@@ -52,7 +48,7 @@ export default function OrdersForDate({ date }: OrdersForDateProps) {
       ) : error ? (
         <div className="text-red-500 py-4">{error}</div>
       ) : (
-        <OrderList orders={orders} onOrderFulfilled={handleOrderFulfilled} />
+        <OrderList orders={orders} />
       )}
     </div>
   )
