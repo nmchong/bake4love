@@ -11,7 +11,10 @@ export async function GET(req: Request) {
   // if no date provided, return all active items
   if (!dateParam) {
     const items = await prisma.menuItem.findMany({
-      where: { active: true }
+      where: { 
+        active: true,
+        deleted: false
+      }
     })
     return NextResponse.json(items)
   }
@@ -28,10 +31,11 @@ export async function GET(req: Request) {
     return NextResponse.json([])
   }
 
-  // show all items where (1) chef is available, (2) item is active, (3) item is available that day of week
+  // show all items where (1) chef is available, (2) item is active, (3) item is available that day of week, (4) item is not deleted
   const items = await prisma.menuItem.findMany({
     where: {
       active: true,
+      deleted: false,
       availableDays: {
         has: dayOfWeek
       }

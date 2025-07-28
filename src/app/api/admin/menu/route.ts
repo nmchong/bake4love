@@ -6,6 +6,7 @@ import { NextResponse } from "next/server"
 export async function GET() {
   try {
     const menuItems = await prisma.menuItem.findMany({
+      where: { deleted: false },
       orderBy: { name: "asc" }
     })
 
@@ -49,6 +50,7 @@ export async function POST(req: Request) {
         halfPrice,
         hasHalfOrder,
         active,
+        deleted: false,
         availableDays,
         imageUrl
       }

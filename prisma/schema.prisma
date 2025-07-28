@@ -20,6 +20,7 @@ model MenuItem {
   halfPrice      Int?
   hasHalfOrder    Boolean    @default(false)
   active         Boolean    @default(true)
+  deleted        Boolean    @default(false)
   availableDays  String[]
   imageUrl       String?
 

@@ -61,7 +61,7 @@ function isPrismaNotFoundError(error: unknown): error is { code: string } {
   return typeof error === 'object' && error !== null && 'code' in error && (error as { code?: unknown }).code === 'P2025'
 }
 
-// delete menu item
+// delete menu item (soft delete)
 // DELETE /api/admin/menu/[id]
 export async function DELETE(
   req: Request,
@@ -69,7 +69,10 @@ export async function DELETE(
 ) {
   const { id } = await params
   try {
-    const deleted = await prisma.menuItem.delete({ where: { id } })
+    const deleted = await prisma.menuItem.update({ 
+      where: { id },
+      data: { deleted: true }
+    })
     return NextResponse.json({ success: true, deleted })
   } catch (error: unknown) {
     if (isPrismaNotFoundError(error)) {
