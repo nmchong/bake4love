@@ -3,10 +3,9 @@ import type { Order } from "@/types/order"
 
 interface OrderListProps {
   orders: Order[]
-  onOrderFulfilled: (orderId: string) => void
 }
 
-export default function OrderList({ orders, onOrderFulfilled }: OrderListProps) {
+export default function OrderList({ orders }: OrderListProps) {
   return (
     <div>
       {orders.length === 0 ? (
@@ -16,7 +15,6 @@ export default function OrderList({ orders, onOrderFulfilled }: OrderListProps) 
           <OrderCard
             key={order.id}
             order={order}
-            onFulfilled={() => onOrderFulfilled(order.id)}
           />
         ))
       )}

@@ -1,16 +1,14 @@
 import { format, parseISO } from "date-fns"
 import { toZonedTime, format as formatTz } from "date-fns-tz"
-import FulfillButton from "./FulfillButton"
 import type { Order } from "@/types/order"
 
 const TIMEZONE = "America/Los_Angeles"
 
 interface OrderCardProps {
   order: Order
-  onFulfilled: () => void
 }
 
-export default function OrderCard({ order, onFulfilled }: OrderCardProps) {
+export default function OrderCard({ order }: OrderCardProps) {
   const laPickupDate = toZonedTime(order.pickupDate, TIMEZONE)
   const displayPickupDate = formatTz(laPickupDate, "PPP", { timeZone: TIMEZONE })
   return (
@@ -44,11 +42,6 @@ export default function OrderCard({ order, onFulfilled }: OrderCardProps) {
           ))}
         </ul>
       </div>
-      {order.status !== "fulfilled" && (
-        <div className="mt-4">
-          <FulfillButton orderId={order.id} onFulfilled={onFulfilled} />
-        </div>
-      )}
     </div>
   )
 } 

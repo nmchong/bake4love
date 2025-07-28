@@ -22,14 +22,6 @@ export default function AdminOrdersPage() {
     fetchOrders()
   }, [tab])
 
-  const handleOrderFulfilled = () => {
-    setLoading(true)
-    fetch(`/api/admin/orders?tab=${tab}`)
-      .then(res => res.json())
-      .then(data => setOrders(data.orders || []))
-      .finally(() => setLoading(false))
-  }
-
   return (
     <div className="flex min-h-screen">
       <AdminSidebar />
@@ -41,7 +33,7 @@ export default function AdminOrdersPage() {
         {loading ? (
           <div className="text-center py-12 text-gray-500">Loading orders...</div>
         ) : (
-          <OrderList orders={orders} onOrderFulfilled={handleOrderFulfilled} />
+          <OrderList orders={orders} />
         )}
       </main>
     </div>
