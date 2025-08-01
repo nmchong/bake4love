@@ -75,6 +75,7 @@ export default function EditMenuItemModal({ open, onOpenChange, menuItem, onSave
 
   if (!open) return null
 
+
   const handleChange = (field: keyof MenuItem, value: string | number | boolean | string[]) => {
     setForm(f => ({ ...f, [field]: value }))
   }
@@ -150,10 +151,18 @@ export default function EditMenuItemModal({ open, onOpenChange, menuItem, onSave
     handleChange('imageUrl', '')
   }
 
+
+
   return (
     <>
-      <Dialog.Dialog open={open} onOpenChange={onOpenChange}>
-        <Dialog.DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <Dialog.Dialog open={open} onOpenChange={(isOpen) => {
+        if (!isOpen && dirty) {
+          setShowConfirm(true)
+        } else if (!isOpen) {
+          onOpenChange(false)
+        }
+      }}>
+        <Dialog.DialogContent className="max-w-[90vw] sm:max-w-[85vw] lg:max-w-[70vw] max-h-[90vh] overflow-y-auto">
           <Dialog.DialogHeader>
             <Dialog.DialogTitle className="text-2xl font-bold text-[#4A2F1B]">
               {menuItem ? "Edit Menu Item" : "Add Menu Item"}
@@ -161,210 +170,226 @@ export default function EditMenuItemModal({ open, onOpenChange, menuItem, onSave
           </Dialog.DialogHeader>
           
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Basic Information */}
-            <Card>
-              <CardContent className="p-6">
-                <h3 className="text-lg font-semibold text-[#4A2F1B] mb-4">Basic Information</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-[#6B4C32] mb-2">Name *</label>
-                    <input 
-                      className="w-full border border-[#E5DED6] rounded-lg p-3 focus:outline-none focus:border-[#A4551E]"
-                      value={form.name || ''} 
-                      onChange={e => handleChange('name', e.target.value)} 
-                      placeholder="Item name" 
-                      required 
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-[#6B4C32] mb-2">Description</label>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+              {/* left column */}
+              <div className="space-y-6">
+                {/* basic information */}
+                <Card>
+                  <CardContent className="p-6">
+                    <h3 className="text-lg font-semibold text-[#4A2F1B] mb-4">Basic Information</h3>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-[#6B4C32] mb-2">Name *</label>
+                        <input 
+                          className="w-full border border-[#E5DED6] rounded-lg p-3 focus:outline-none focus:border-[#A4551E]"
+                          value={form.name || ''} 
+                          onChange={e => handleChange('name', e.target.value)} 
+                          placeholder="Item name" 
+                          required 
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-[#6B4C32] mb-2">Description</label>
+                        <textarea 
+                          className="w-full border border-[#E5DED6] rounded-lg p-3 focus:outline-none focus:border-[#A4551E]"
+                          value={form.description || ''} 
+                          onChange={e => handleChange('description', e.target.value)} 
+                          placeholder="Item description"
+                          rows={3}
+                        />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* ingredients */}
+                <Card>
+                  <CardContent className="p-6">
+                    <h3 className="text-lg font-semibold text-[#4A2F1B] mb-4">Ingredients</h3>
+                    <p className="text-sm text-[#6B4C32] mt-2">
+                      Enter each ingredient on a separate line
+                    </p>
                     <textarea 
                       className="w-full border border-[#E5DED6] rounded-lg p-3 focus:outline-none focus:border-[#A4551E]"
-                      value={form.description || ''} 
-                      onChange={e => handleChange('description', e.target.value)} 
-                      placeholder="Item description"
-                      rows={3}
+                      value={ingredientsText} 
+                      onChange={e => handleIngredientsChange(e.target.value)} 
+                      placeholder="Enter ingredients, one per line"
+                      rows={4}
                     />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                  </CardContent>
+                </Card>
 
-            {/* Pricing */}
-            <Card>
-              <CardContent className="p-6">
-                <h3 className="text-lg font-semibold text-[#4A2F1B] mb-4">Pricing</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-[#6B4C32] mb-2">Full Price (cents) *</label>
-                    <input 
-                      className="w-full border border-[#E5DED6] rounded-lg p-3 focus:outline-none focus:border-[#A4551E]"
-                      type="number" 
-                      value={form.price ?? ''} 
-                      onChange={e => handleChange('price', Number(e.target.value))} 
-                      placeholder="1000" 
-                      required 
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-[#6B4C32] mb-2">Half Price (cents)</label>
-                    <input 
-                      className="w-full border border-[#E5DED6] rounded-lg p-3 focus:outline-none focus:border-[#A4551E]"
-                      type="number" 
-                      value={form.halfPrice ?? ''} 
-                      onChange={e => handleChange('halfPrice', Number(e.target.value))} 
-                      placeholder="500" 
-                    />
-                  </div>
-                  <div className="flex items-end">
-                    <label className="flex items-center gap-2 text-sm font-medium text-[#6B4C32]">
-                      <input 
-                        type="checkbox" 
-                        checked={!!form.hasHalfOrder} 
-                        onChange={e => handleChange('hasHalfOrder', e.target.checked)} 
-                        className="rounded border-[#E5DED6]"
-                      /> 
-                      Half Order Available
-                    </label>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Image Upload */}
-            <Card>
-              <CardContent className="p-6">
-                <h3 className="text-lg font-semibold text-[#4A2F1B] mb-4">Image</h3>
-                <div className="space-y-4">
-                  <div className="flex items-center gap-4">
-                    <label className="flex items-center gap-2 px-4 py-2 bg-[#A4551E] text-white rounded-lg cursor-pointer hover:bg-[#843C12] transition-colors">
-                      <Upload className="w-4 h-4" />
-                      {uploading ? 'Uploading...' : 'Upload Image'}
-                      <input
-                        type="file"
-                        accept=".jpg,.jpeg,.png"
-                        onChange={e => {
-                          const file = e.target.files?.[0] || null
-                          setImageFile(file)
-                        }}
-                        className="hidden"
-                        disabled={uploading}
-                      />
-                    </label>
-                    {(imagePreview || form.imageUrl) && (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={removeImage}
-                        className="text-red-600 hover:text-red-700"
-                      >
-                        <Trash2 className="w-4 h-4 mr-2" />
-                        Remove
-                      </Button>
-                    )}
-                  </div>
-                  
-                  <div className="flex gap-4 items-start">
-                    {imagePreview ? (
-                      <div className="relative">
-                        <Image 
-                          src={imagePreview} 
-                          alt="Preview" 
-                          width={300} 
-                          height={180} 
-                          className="object-cover rounded-lg border border-[#E5DED6]" 
-                          unoptimized 
-                        />
-                        <div className="absolute top-2 right-2 bg-green-500 text-white px-2 py-1 rounded text-xs">
-                          New
-                        </div>
-                      </div>
-                    ) : form.imageUrl ? (
-                      <div className="relative">
-                        <Image 
-                          src={form.imageUrl} 
-                          alt="Current" 
-                          width={300} 
-                          height={180} 
-                          className="object-cover rounded-lg border border-[#E5DED6]" 
-                          unoptimized={form.imageUrl.startsWith('blob:') || form.imageUrl.startsWith('data:')} 
-                        />
-                        <div className="absolute top-2 right-2 bg-blue-500 text-white px-2 py-1 rounded text-xs">
-                          Current
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="w-[300px] h-[180px] flex flex-col items-center justify-center bg-gray-100 border border-[#E5DED6] rounded-lg text-gray-400">
-                        <Upload className="w-8 h-8 mb-2" />
-                        <span className="text-sm">No image selected</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Ingredients */}
-            <Card>
-              <CardContent className="p-6">
-                <h3 className="text-lg font-semibold text-[#4A2F1B] mb-4">Ingredients</h3>
-                <textarea 
-                  className="w-full border border-[#E5DED6] rounded-lg p-3 focus:outline-none focus:border-[#A4551E]"
-                  value={ingredientsText} 
-                  onChange={e => handleIngredientsChange(e.target.value)} 
-                  placeholder="Enter ingredients, one per line"
-                  rows={4}
-                />
-                <p className="text-sm text-[#6B4C32] mt-2">
-                  Enter each ingredient on a separate line
-                </p>
-              </CardContent>
-            </Card>
-
-            {/* Availability */}
-            <Card>
-              <CardContent className="p-6">
-                <h3 className="text-lg font-semibold text-[#4A2F1B] mb-4">Availability</h3>
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2">
-                    <input 
-                      type="checkbox" 
-                      checked={!!form.active} 
-                      onChange={e => handleChange('active', e.target.checked)} 
-                      className="rounded border-[#E5DED6]"
-                    />
-                    <label className="text-sm font-medium text-[#6B4C32]">Active (visible to customers)</label>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-[#6B4C32] mb-3">Available Days</label>
-                    <div className="grid grid-cols-7 gap-2">
-                      {['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'].map(day => (
-                        <label key={day} className="flex flex-col items-center gap-1 p-2 border border-[#E5DED6] rounded-lg cursor-pointer hover:bg-[#F3E9D7] transition-colors">
-                          <input 
-                            type="checkbox" 
-                            checked={form.availableDays?.includes(day) || false} 
+                {/* image upload */}
+                <Card>
+                  <CardContent className="p-6">
+                    <h3 className="text-lg font-semibold text-[#4A2F1B] mb-4">Image</h3>
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-4">
+                        <label className="flex items-center gap-2 px-4 py-2 bg-[#A4551E] text-white rounded-lg cursor-pointer hover:bg-[#843C12] transition-colors">
+                          <Upload className="w-4 h-4" />
+                          {uploading ? 'Uploading...' : 'Upload Image'}
+                          <input
+                            type="file"
+                            accept=".jpg,.jpeg,.png"
                             onChange={e => {
-                              const days = new Set(form.availableDays || [])
-                              if (e.target.checked) {
-                                days.add(day)
-                              } else {
-                                days.delete(day)
-                              }
-                              handleChange('availableDays', Array.from(days))
-                            }} 
-                            className="rounded border-[#E5DED6]"
+                              const file = e.target.files?.[0] || null
+                              setImageFile(file)
+                            }}
+                            className="hidden"
+                            disabled={uploading}
                           />
-                          <span className="text-xs text-[#6B4C32] font-medium">{day.slice(0,3)}</span>
                         </label>
-                      ))}
+                        {(imagePreview || form.imageUrl) && (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={removeImage}
+                            className="text-red-600 hover:text-red-700"
+                          >
+                            <Trash2 className="w-4 h-4 mr-2" />
+                            Remove
+                          </Button>
+                        )}
+                      </div>
+                      
+                      <div className="flex gap-4 items-start">
+                        {imagePreview ? (
+                          <div className="relative">
+                            <Image 
+                              src={imagePreview} 
+                              alt="Preview" 
+                              width={300} 
+                              height={180} 
+                              className="object-cover rounded-lg border border-[#E5DED6]" 
+                              unoptimized 
+                            />
+                            <div className="absolute top-2 right-2 bg-green-500 text-white px-2 py-1 rounded text-xs">
+                              New
+                            </div>
+                          </div>
+                        ) : form.imageUrl ? (
+                          <div className="relative">
+                            <Image 
+                              src={form.imageUrl} 
+                              alt="Current" 
+                              width={300} 
+                              height={180} 
+                              className="object-cover rounded-lg border border-[#E5DED6]" 
+                              unoptimized={form.imageUrl.startsWith('blob:') || form.imageUrl.startsWith('data:')} 
+                            />
+                            <div className="absolute top-2 right-2 bg-blue-500 text-white px-2 py-1 rounded text-xs">
+                              Current
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="w-[300px] h-[180px] flex flex-col items-center justify-center bg-gray-100 border border-[#E5DED6] rounded-lg text-gray-400">
+                            <Upload className="w-8 h-8 mb-2" />
+                            <span className="text-sm">No image selected</span>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                  </CardContent>
+                </Card>
+              </div>
 
-            {/* Actions */}
+
+              {/* right column */}
+              <div className="space-y-6">
+                {/* pricing */}
+                <Card>
+                  <CardContent className="p-6">
+                    <h3 className="text-lg font-semibold text-[#4A2F1B] mb-4">Pricing</h3>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-[#6B4C32] mb-2">Full Price (cents) *</label>
+                        <input 
+                          className="w-full border border-[#E5DED6] rounded-lg p-3 focus:outline-none focus:border-[#A4551E]"
+                          type="number" 
+                          value={form.price ?? ''} 
+                          onChange={e => handleChange('price', Number(e.target.value))} 
+                          placeholder="Type full price here" 
+                          required 
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-[#6B4C32] mb-2">Half Price (cents)</label>
+                        <input 
+                          className="w-full border border-[#E5DED6] rounded-lg p-3 focus:outline-none focus:border-[#A4551E] disabled:bg-gray-100 disabled:text-gray-500"
+                          type="number" 
+                          value={form.halfPrice ?? ''} 
+                          onChange={e => handleChange('halfPrice', Number(e.target.value))} 
+                          placeholder="Type half price here" 
+                          disabled={!form.hasHalfOrder}
+                        />
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <input 
+                          type="checkbox" 
+                          checked={!!form.hasHalfOrder} 
+                          onChange={e => {
+                            const hasHalfOrder = e.target.checked
+                            handleChange('hasHalfOrder', hasHalfOrder)
+                            // clear half price if unchecking half order
+                            if (!hasHalfOrder) {
+                              setForm(f => ({ ...f, halfPrice: undefined }))
+                            }
+                          }} 
+                          className="rounded border-[#E5DED6]"
+                        />
+                        <label className="text-sm font-medium text-[#6B4C32]">Half Order Available</label>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* availability */}
+                <Card>
+                  <CardContent className="p-6">
+                    <h3 className="text-lg font-semibold text-[#4A2F1B] mb-4">Availability</h3>
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2">
+                        <input 
+                          type="checkbox" 
+                          checked={!!form.active} 
+                          onChange={e => handleChange('active', e.target.checked)} 
+                          className="rounded border-[#E5DED6]"
+                        />
+                        <label className="text-sm font-medium text-[#6B4C32]">Active (visible to customers)</label>
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-[#6B4C32] mb-3">Available Days</label>
+                        <div className="grid grid-cols-7 gap-2">
+                          {['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'].map(day => (
+                            <label key={day} className="flex flex-col items-center gap-1 p-2 border border-[#E5DED6] rounded-lg cursor-pointer hover:bg-[#F3E9D7] transition-colors">
+                              <input 
+                                type="checkbox" 
+                                checked={form.availableDays?.includes(day) || false} 
+                                onChange={e => {
+                                  const days = new Set(form.availableDays || [])
+                                  if (e.target.checked) {
+                                    days.add(day)
+                                  } else {
+                                    days.delete(day)
+                                  }
+                                  handleChange('availableDays', Array.from(days))
+                                }} 
+                                className="rounded border-[#E5DED6]"
+                              />
+                              <span className="text-xs text-[#6B4C32] font-medium">{day.slice(0,3)}</span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+
+            {/* actions */}
             <div className="flex justify-end gap-3 pt-4 border-t border-[#E5DED6]">
               <Button 
                 type="button" 
@@ -396,6 +421,7 @@ export default function EditMenuItemModal({ open, onOpenChange, menuItem, onSave
         </Dialog.DialogContent>
       </Dialog.Dialog>
       
+      {/* confirmation dialog */}
       <ConfirmationDialog
         open={showConfirm}
         onOpenChange={setShowConfirm}
