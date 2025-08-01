@@ -30,14 +30,14 @@ export default function AvailabilityCalendar({ selectedDate, onSelectDate, order
     const hasAvailability = !!availabilityByDate[key]
     const hasOrders = !!ordersByDate[key]
     if (inCustomerRange) {
-      if (hasAvailability) return "bg-green-200"
-      if (hasOrders) return "bg-purple-200"
+      if (hasAvailability) return "bg-green-300"
+      if (hasOrders) return "bg-purple-300"
       return ""
     } else if (isPastCustomerRange) {
-      if (hasAvailability || hasOrders) return "bg-purple-100"
+      if (hasAvailability || hasOrders) return "bg-purple-200"
       return ""
     } else if (isFutureCustomerRange) {
-      if (hasAvailability) return "bg-green-100"
+      if (hasAvailability) return "bg-green-200"
       return ""
     }
     return ""

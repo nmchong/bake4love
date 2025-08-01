@@ -214,11 +214,9 @@ export default function AdminManagePage() {
   const hasOrders = ordersCount > 0
 
   return (
-    <div className="flex min-h-screen">
-      <div className="border-r bg-gray-50 min-h-screen">
-        <AdminSidebar />
-      </div>
-      <main className="flex-1 max-w-6xl mx-auto py-8 px-4">
+    <div className="flex min-h-screen bg-[#F3E9D7]">
+      <AdminSidebar />
+      <main className="flex-1 max-w-6xl mx-auto py-8 px-4 bg-[#F3E9D7]">
         <h1 className="text-2xl font-bold mb-6">Manage Availability & Menu</h1>
         {loading ? (
           <div className="text-center py-12">Loading...</div>

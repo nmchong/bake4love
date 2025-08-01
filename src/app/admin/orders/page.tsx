@@ -23,9 +23,9 @@ export default function AdminOrdersPage() {
   }, [tab])
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen bg-[#F3E9D7]">
       <AdminSidebar />
-      <main className="flex-1 max-w-3xl mx-auto p-6">
+      <main className="flex-1 max-w-3xl mx-auto p-6 bg-[#F3E9D7]">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold">Orders</h1>
           <OrderToggleSwitch value={tab} onChange={setTab} />
