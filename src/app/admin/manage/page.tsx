@@ -218,7 +218,7 @@ export default function AdminManagePage() {
       <div className="border-r bg-gray-50 min-h-screen">
         <AdminSidebar />
       </div>
-      <main className="flex-1 max-w-5xl mx-auto py-8 px-4">
+      <main className="flex-1 max-w-6xl mx-auto py-8 px-4">
         <h1 className="text-2xl font-bold mb-6">Manage Availability & Menu</h1>
         {loading ? (
           <div className="text-center py-12">Loading...</div>
