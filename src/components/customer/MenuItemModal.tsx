@@ -185,7 +185,7 @@ export default function MenuItemModal({ menuItem, onClose, selectedDate, disable
             <button
               onClick={decrementQuantity}
               disabled={quantity <= 1 || disableAddToCart}
-              className="w-8 h-8 rounded border border-[#E5DED6] flex items-center justify-center hover:bg-[#F3E9D7] disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-8 h-8 rounded border border-[#E5DED6] flex items-center justify-center hover:bg-[#F3E9D7] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
               -
             </button>
@@ -193,7 +193,7 @@ export default function MenuItemModal({ menuItem, onClose, selectedDate, disable
             <button 
               onClick={incrementQuantity}
               disabled={quantity >= 10 ||disableAddToCart}
-              className="w-8 h-8 rounded border border-[#E5DED6] flex items-center justify-center hover:bg-[#F3E9D7] disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-8 h-8 rounded border border-[#E5DED6] flex items-center justify-center hover:bg-[#F3E9D7] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
               +
             </button>
@@ -202,7 +202,7 @@ export default function MenuItemModal({ menuItem, onClose, selectedDate, disable
 
         {/* add to cart button */}
         <button 
-          className="w-full px-4 py-3 bg-[#A4551E] text-[#FFFDF5] rounded-lg hover:bg-[#843C12] disabled:opacity-60 font-semibold" 
+          className="w-full px-4 py-3 bg-[#A4551E] text-[#FFFDF5] rounded-lg hover:bg-[#843C12] disabled:opacity-60 font-semibold cursor-pointer" 
           onClick={tryAdd} 
           disabled={disableAddToCart}
         >

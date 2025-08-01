@@ -42,7 +42,7 @@ export default function AdminSidebar() {
       <div className="mt-auto pt-4 border-t">
         <button
           onClick={handleLogout}
-          className="w-full px-3 py-2 rounded transition-colors font-medium text-red-600 hover:bg-red-50"
+          className="w-full px-3 py-2 rounded transition-colors font-medium text-red-600 hover:bg-red-50 cursor-pointer"
         >
           Log Out
         </button>

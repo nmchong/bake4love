@@ -36,7 +36,7 @@ export default function CalendarRow({
       {/* all items button */}
       <button
         className={clsx(
-          "min-w-[100px] h-[86px] min-h-[86px] mb-2 rounded-md p-3 text-sm border flex flex-col items-center justify-center font-bold transition-colors mr-4",
+          "min-w-[100px] h-[86px] min-h-[86px] mb-2 rounded-md p-3 text-sm border flex flex-col items-center justify-center font-bold transition-colors mr-4 cursor-pointer",
           allItemsSelected
             ? "bg-[#A4551E] text-[#FFFDF5] border-[#A4551E] shadow-sm"
             : "bg-[#FAE6C8] text-[#4A2F1B] border-[#E5DED6] hover:bg-[#FFE2B0]"
@@ -66,8 +66,8 @@ export default function CalendarRow({
                   "min-w-[100px] h-[86px] min-h-[86px] rounded-md p-3 text-sm border flex flex-col items-center justify-center",
                   isAvailable
                     ? (isSelected
-                        ? "bg-[#A4551E] text-[#FFFDF5] border-[#A4551E] shadow-sm font-bold"
-                        : "bg-[#FAE6C8] text-[#4A2F1B] border-[#E5DED6]")
+                        ? "bg-[#A4551E] text-[#FFFDF5] border-[#A4551E] shadow-sm font-bold cursor-pointer"
+                        : "bg-[#FAE6C8] text-[#4A2F1B] border-[#E5DED6] cursor-pointer")
                     : "bg-[#FAF7ED] text-[#6B4C32] cursor-not-allowed border-[#E5DED6]",
                   isSelected && "border-[#A4551E] font-bold"
                 )}

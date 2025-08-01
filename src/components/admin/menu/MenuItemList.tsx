@@ -41,10 +41,10 @@ export default function MenuItemList({ menuItems, onEdit, onDelete, isLoading }:
       <div className="space-y-4 w-full">
         {menuItems.map(item => (
           <Card key={item.id}>
-            <CardContent className="p-4">
+            <CardContent className="px-6">
               <div className="flex items-center gap-8">
                 {/* image */}
-                <div className="relative w-24 h-24 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+                <div className="relative w-32 h-32 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
                   {item.imageUrl ? (
                     <Image
                       src={item.imageUrl}
