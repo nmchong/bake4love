@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { ConfirmationDialog } from "@/components/admin/shared/ConfirmationDialog"
+import { Trash2 } from "lucide-react"
 
 interface DeleteMenuItemButtonProps {
   menuItemId: string
@@ -13,12 +14,20 @@ export default function DeleteMenuItemButton({ onDelete, isLoading }: DeleteMenu
 
   return (
     <>
-      <Button variant="destructive" onClick={() => setOpen(true)} disabled={isLoading}>Delete</Button>
+      <Button 
+        variant="outline" 
+        onClick={() => setOpen(true)} 
+        disabled={isLoading}
+        className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-300"
+      >
+        <Trash2 className="w-4 h-4 mr-2" />
+        Delete
+      </Button>
       <ConfirmationDialog
         open={open}
         onOpenChange={setOpen}
-        title="Delete Menu Item?"
-        message="Are you sure you want to permanently delete this menu item? This cannot be undone."
+        title="Remove Menu Item?"
+        message="This will delete the item from customers (but will preserve order history)."
         onConfirm={onDelete}
         onCancel={() => setOpen(false)}
         confirmLabel="Delete"

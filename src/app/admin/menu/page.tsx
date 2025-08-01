@@ -98,7 +98,7 @@ export default function AdminMenuPage() {
       <div className="border-r bg-gray-50 min-h-screen">
         <AdminSidebar />
       </div>
-      <main className="flex-1 max-w-2xl mx-auto py-8 px-4">
+      <main className="flex-1 py-8 px-16">
         <PageHeader title="Menu Management" />
         <div className="mb-4 flex justify-end">
           <Button onClick={() => setAddOpen(true)} disabled={loading}>
