@@ -20,6 +20,7 @@ export interface Order {
   pickupTime: string
   notes?: string
   cost: number
+  tipCents: number
   status: string
   createdAt: string
   orderItems: OrderItem[]
