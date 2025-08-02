@@ -41,6 +41,9 @@ export async function GET(req: Request) {
         pickupDate: {
           gte: dayStart,
           lt: nextDay
+        },
+        status: {
+          in: ["paid", "fulfilled"]
         }
       }
     })

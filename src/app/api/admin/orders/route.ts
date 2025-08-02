@@ -23,6 +23,9 @@ export async function GET(req: NextRequest) {
       pickupDate: {
         gte: dayStart,
         lt: nextDay
+      },
+      status: {
+        in: ["paid", "fulfilled"]
       }
     }
   } else if (tab === "upcoming") {
@@ -38,7 +41,10 @@ export async function GET(req: NextRequest) {
     where = {
       OR: [
         { status: "fulfilled" },
-        { pickupDate: { lt: today } }
+        { 
+          status: "paid",
+          pickupDate: { lt: today }
+        }
       ]
     }
   }
