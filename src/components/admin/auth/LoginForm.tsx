@@ -40,6 +40,8 @@ export default function LoginForm() {
 
   return (
     <form onSubmit={handleLogin} className="space-y-4 max-w-md mx-auto mt-12">
+      <h1 className="text-4xl font-bold text-center text-[#4A2F1B] mb-2">Bake4Love</h1>
+      <h1 className="text-2xl font-bold text-center text-[#4A2F1B] mb-6">Admin Login</h1>
       <input
         type="email"
         className="w-full border p-2"
@@ -55,7 +57,7 @@ export default function LoginForm() {
         onChange={(e) => setPassword(e.target.value)}
       />
       {errorMsg && <p className="text-red-500 text-sm">{errorMsg}</p>}
-      <button type="submit" className="bg-black text-white px-4 py-2">
+      <button type="submit" className="bg-black text-white px-4 py-2 cursor-pointer">
         Login
       </button>
     </form>
