@@ -6,8 +6,8 @@ import TipsSection from "@/components/customer/TipsSection"
 import { useCart } from "@/components/customer/CartContext"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { useState } from "react"
-
+import { useState, useEffect, useCallback } from "react"
+import { format, addDays, isBefore, isAfter, startOfDay } from "date-fns"
 
 export default function CheckoutPage() {
   const { cartItems, pickupDate, pickupTime, customerInfo, tipCents, setCustomerInfo, setTipCents } = useCart()
@@ -15,6 +15,7 @@ export default function CheckoutPage() {
   const [form, setForm] = useState<OrderFormValues>(customerInfo)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [availableDates, setAvailableDates] = useState<{ [key: string]: boolean }>({})
 
   const canSubmit =
     cartItems.length > 0 &&
@@ -23,8 +24,52 @@ export default function CheckoutPage() {
     form.email.trim() !== "" &&
     !submitting
 
+  // determine if date is in orderable window (4-17 days from today)
+  function isOrderableDate(dateStr: string | null) {
+    if (!dateStr) return false;
+    const today = startOfDay(new Date());
+    const date = startOfDay(new Date(dateStr));
+    const minDate = addDays(today, 4);
+    const maxDate = addDays(today, 17);
+    return !isBefore(date, minDate) && !isAfter(date, maxDate);
+  }
+
+  // check if date is still available (has time slots)
+  const isDateAvailable = useCallback((dateStr: string | null) => {
+    if (!dateStr) return false;
+    return availableDates[dateStr] === true;
+  }, [availableDates]);
+
+  // fetch current availability
+  useEffect(() => {
+    const fetchAvailability = async () => {
+      const today = new Date();
+      const startDate = new Date(today);
+      startDate.setDate(today.getDate() + 4);
+      const start = format(startDate, 'yyyy-MM-dd');
+      const endDate = new Date(startDate);
+      endDate.setDate(startDate.getDate() + 13);
+      const end = format(endDate, 'yyyy-MM-dd');
+      const res = await fetch(`/api/availability-range?start=${start}&end=${end}`);
+      const data = await res.json();
+      const result: { [key: string]: boolean } = {};
+      for (const entry of data) {
+        result[entry.date] = entry.timeSlots !== null;
+      }
+      setAvailableDates(result);
+    };
+    fetchAvailability();
+  }, []);
+
   const handleSubmit = async () => {
     setError(null)
+    
+    // check date availability before proceeding
+    if (!isOrderableDate(pickupDate) || !isDateAvailable(pickupDate)) {
+      setError('Unable to order for this date. Date is either closed or no longer available. Please remove all items from cart and select a different pickup date.');
+      return;
+    }
+    
     setSubmitting(true)
     try {
       // create the order
