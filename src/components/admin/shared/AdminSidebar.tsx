@@ -10,6 +10,7 @@ const navLinks = [
   { href: "/admin/manage", label: "Manage" },
   { href: "/admin/orders", label: "Orders" },
   { href: "/admin/menu", label: "Menu" },
+  { href: "/admin/discounts", label: "Discounts" },
 ]
 
 export default function AdminSidebar() {
