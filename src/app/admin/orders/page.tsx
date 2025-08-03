@@ -33,7 +33,7 @@ export default function AdminOrdersPage() {
         {loading ? (
           <div className="text-center py-12 text-gray-500">Loading orders...</div>
         ) : (
-          <OrderList orders={orders} />
+          <OrderList orders={orders} tab={tab} />
         )}
       </main>
     </div>

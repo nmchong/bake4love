@@ -4,12 +4,13 @@ import { format } from "date-fns"
 
 interface OrderListProps {
   orders: Order[]
+  tab?: "upcoming" | "past"
 }
 
-export default function OrderList({ orders }: OrderListProps) {
+export default function OrderList({ orders, tab = "upcoming" }: OrderListProps) {
   // sort orders by pickup date first, then by pickup time
   const sortedOrders = [...orders].sort((a, b) => {
-    // first sort by date (closest to today on top)
+    // first sort by date
     const dateA = new Date(a.pickupDate)
     const dateB = new Date(b.pickupDate)
     const dateComparison = dateA.getTime() - dateB.getTime()
@@ -17,6 +18,11 @@ export default function OrderList({ orders }: OrderListProps) {
     // if dates are the same, sort by time (earliest first)
     if (dateComparison === 0) {
       return a.pickupTime.localeCompare(b.pickupTime)
+    }
+    
+    // for past tab, reverse the date order (latest first)
+    if (tab === "past") {
+      return -dateComparison
     }
     
     return dateComparison
