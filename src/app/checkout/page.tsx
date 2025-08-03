@@ -7,7 +7,8 @@ import { useCart } from "@/components/customer/CartContext"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { useState, useEffect, useCallback } from "react"
-import { format, addDays, isBefore, isAfter, startOfDay } from "date-fns"
+import { format, addDays, isBefore, isAfter, startOfDay, parseISO } from "date-fns"
+import { toZonedTime } from "date-fns-tz"
 
 export default function CheckoutPage() {
   const { cartItems, pickupDate, pickupTime, customerInfo, tipCents, setCustomerInfo, setTipCents } = useCart()
@@ -27,10 +28,11 @@ export default function CheckoutPage() {
   // determine if date is in orderable window (4-17 days from today)
   function isOrderableDate(dateStr: string | null) {
     if (!dateStr) return false;
-    const today = startOfDay(new Date());
-    const date = startOfDay(new Date(dateStr));
-    const minDate = addDays(today, 4);
-    const maxDate = addDays(today, 17);
+    // use PST timezone for consistent date comparison
+    const today = toZonedTime(startOfDay(new Date()), 'America/Los_Angeles');
+    const date = toZonedTime(startOfDay(parseISO(dateStr)), 'America/Los_Angeles');
+    const minDate = toZonedTime(addDays(today, 4), 'America/Los_Angeles');
+    const maxDate = toZonedTime(addDays(today, 17), 'America/Los_Angeles');
     return !isBefore(date, minDate) && !isAfter(date, maxDate);
   }
 
@@ -138,7 +140,7 @@ export default function CheckoutPage() {
         </div>
 
         {/* right column */}
-        <div className="space-y-6">
+        <div className="space-y-3">
           {/* customer info */}
           <OrderForm values={form} onChange={(newForm) => {
             setForm(newForm)

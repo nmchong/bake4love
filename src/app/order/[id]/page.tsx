@@ -1,13 +1,12 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useParams, useSearchParams } from "next/navigation"
+import { useParams, useSearchParams, useRouter } from "next/navigation"
 import { format, parseISO, addMinutes, parse, format as formatDate } from "date-fns"
 import { Button } from "@/components/ui/button"
-import { useRouter } from "next/navigation"
+import { useCart } from "@/components/customer/CartContext"
 import { toZonedTime } from "date-fns-tz"
 import Image from "next/image"
-import { useCart } from "@/components/customer/CartContext"
 
 
 interface OrderItem {
@@ -86,8 +85,11 @@ export default function OrderPage() {
       if (isCanceled && order && !processingCancel) {
         setProcessingCancel(true)
         try {
+          // convert pickupDate from ISO string to YYYY-MM-DD format for cart
+          const pickupDateFormatted = format(new Date(order.pickupDate), 'yyyy-MM-dd')
+          
           // restore cart from order data
-          restoreCartFromOrder(order.orderItems, order.pickupDate, order.pickupTime)
+          restoreCartFromOrder(order.orderItems, pickupDateFormatted, order.pickupTime)
           
           // del cancelled order form db
           await fetch(`/api/order/${orderId}`, { method: "DELETE" })
