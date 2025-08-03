@@ -22,7 +22,7 @@ export async function PATCH(
     }
 
     // update promotion code
-    const updateData: Stripe.PromotionCodeUpdateParams = {}
+    const updateData: Stripe.PromotionCodeUpdateParams & { expires_at?: number | null } = {}
     
     if (body.active !== undefined) {
       updateData.active = body.active
@@ -39,6 +39,8 @@ export async function PATCH(
         bannerMessage: body.bannerMessage !== undefined ? body.bannerMessage : currentMetadata.bannerMessage || ""
       }
     }
+
+
 
     const updatedPromotionCode = await stripe.promotionCodes.update(id, updateData)
 
@@ -85,7 +87,7 @@ export async function GET(
       percentOff: coupon.percent_off,
       amountOffCents: coupon.amount_off,
       minSubtotalCents: promotionCode.restrictions?.minimum_amount || null,
-      expiresAt: coupon.redeem_by ? new Date(coupon.redeem_by * 1000).toISOString() : null,
+      expiresAt: promotionCode.expires_at ? new Date(promotionCode.expires_at * 1000).toISOString() : null,
       showBanner: promotionCode.metadata?.showBanner === "true",
       bannerMessage: promotionCode.metadata?.bannerMessage || "",
       createdAt: new Date(promotionCode.created * 1000).toISOString()

@@ -4,6 +4,8 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Plus, Edit, Trash2, Archive } from "lucide-react"
+import DatePicker from "react-datepicker"
+import "react-datepicker/dist/react-datepicker.css"
 
 interface Discount {
   id: string
@@ -115,20 +117,20 @@ export default function DiscountManager() {
         setShowCreateForm(false)
         setFormData({
           code: "",
-          type: "fixed",
-          amountOffCents: 500,
+          type: "percent",
+          percentOff: 20,
           showBanner: false,
           bannerMessage: ""
         })
         fetchDiscounts()
       } else {
         const error = await response.json()
-        setApiError(error.error || "Failed to create discount")
+        setApiError(error.error || `Failed to create discount: ${error.details || 'Unknown error'}`)
       }
-    } catch (error) {
-      console.error("Error creating discount:", error)
-      setApiError(`Failed to create discount: ${error}`)
-    }
+          } catch (error) {
+        console.error("Error creating discount:", error)
+        setApiError(`Failed to create discount: ${error}`)
+      }
   }
 
   const handleUpdateDiscount = async (id: string, updates: Partial<Discount>) => {
@@ -176,6 +178,11 @@ export default function DiscountManager() {
   }
 
 
+
+  const isExpired = (discount: Discount) => {
+    if (!discount.expiresAt) return false
+    return new Date(discount.expiresAt) < new Date()
+  }
 
   const formatDiscount = (discount: Discount) => {
     let discountText = ""
@@ -334,7 +341,7 @@ export default function DiscountManager() {
                         onClick={() => {
                           const amount = parseFloat(tempAmountInput) * 100
                           if (!isNaN(amount) && amount >= 0) {
-                            setFormData({ ...formData, amountOffCents: amount })
+                            setFormData({ ...formData, amountOffCents: Math.round(amount) })
                             setShowAmountInput(false)
                           }
                         }}
@@ -384,7 +391,7 @@ export default function DiscountManager() {
                       onClick={() => {
                         const amount = parseFloat(tempMinSubtotalInput) * 100
                         if (!isNaN(amount) && amount >= 0) {
-                          setFormData({ ...formData, minSubtotalCents: amount })
+                          setFormData({ ...formData, minSubtotalCents: Math.round(amount) })
                           setShowMinSubtotalInput(false)
                         }
                       }}
@@ -396,22 +403,46 @@ export default function DiscountManager() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">Expiry Date (valid through)</label>
-                <input
-                  type="date"
-                  value={formData.expiresAt ? formData.expiresAt.split('T')[0] : ""}
-                  onChange={(e) => {
-                    if (e.target.value) {
-                      // set to end of day (11:59 PM)
-                      const date = new Date(e.target.value)
-                      date.setHours(23, 59, 59, 999)
-                      setFormData({ ...formData, expiresAt: date.toISOString() })
-                    } else {
-                      setFormData({ ...formData, expiresAt: "" })
+                <label className="block text-sm font-medium mb-2">
+                  Expiry Date (valid through) -- MM/DD/YYYY
+                  {editingDiscount && (
+                    <span className="text-xs text-gray-500 ml-2">(cannot be changed once set)</span>
+                  )}
+                </label>
+                <DatePicker
+                  selected={formData.expiresAt ? new Date(formData.expiresAt) : null}
+                  onChange={(date) => {
+                    if (!editingDiscount && date instanceof Date && !isNaN(date.getTime())) {
+                      const endOfDay = new Date(date)
+                      endOfDay.setHours(23, 59, 59, 999)
+                      setFormData({ ...formData, expiresAt: endOfDay.toISOString() })
                     }
                   }}
-                  className="w-full px-3 py-2 border border-[#D4B494] rounded-md focus:outline-none focus:ring-2 focus:ring-[#A4551E]"
+                  onChangeRaw={(e) => {
+                    if (e?.target && 'value' in e.target) {
+                      const parsed = new Date((e.target as HTMLInputElement).value)
+                      if (!editingDiscount && !isNaN(parsed.getTime())) {
+                        const endOfDay = new Date(parsed)
+                        endOfDay.setHours(23, 59, 59, 999)
+                        setFormData({ ...formData, expiresAt: endOfDay.toISOString() })
+                      }
+                    }
+                  }}
+                  disabled={!!editingDiscount}
+                  minDate={new Date()}
+                  maxDate={new Date(2030, 11, 31)}
+                  dateFormat="MM/dd/yyyy"
+                  placeholderText="Select expiry date"
+                  className={`w-full px-3 py-2 border border-[#D4B494] rounded-md focus:outline-none focus:ring-2 focus:ring-[#A4551E] ${
+                    editingDiscount ? 'bg-gray-100 cursor-not-allowed' : ''
+                  }`}
                 />
+
+                {editingDiscount && (
+                  <p className="text-xs text-gray-500 mt-1">
+                    Note: Expiry date cannot be modified once the discount is created.
+                  </p>
+                )}
               </div>
             </div>
 
@@ -503,6 +534,9 @@ export default function DiscountManager() {
                   {discount.expiresAt && (
                     <p className="text-xs text-gray-500">
                       Expires: {new Date(discount.expiresAt).toLocaleDateString()}
+                      {isExpired(discount) && (
+                        <span className="text-red-500 ml-1">(Expired)</span>
+                      )}
                     </p>
                   )}
                   
@@ -537,6 +571,11 @@ export default function DiscountManager() {
                         showBanner: discount.showBanner,
                         bannerMessage: discount.bannerMessage
                       })
+                      // set the temporary input values for editing
+                      setTempAmountInput(discount.amountOffCents ? (discount.amountOffCents / 100).toFixed(2) : "5.00")
+                      setTempMinSubtotalInput(discount.minSubtotalCents ? (discount.minSubtotalCents / 100).toFixed(2) : "0.00")
+                      setShowAmountInput(false)
+                      setShowMinSubtotalInput(false)
                     }}
                   >
                     <Edit className="w-4 h-4 mr-1" />
@@ -548,6 +587,8 @@ export default function DiscountManager() {
                         variant="outline"
                         size="sm"
                         onClick={() => setShowActivateConfirm(discount.id)}
+                        disabled={isExpired(discount)}
+                        title={isExpired(discount) ? "Cannot activate expired discounts" : ""}
                       >
                         <Plus className="w-4 h-4 mr-1" />
                         Activate
