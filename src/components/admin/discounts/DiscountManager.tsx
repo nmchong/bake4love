@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Plus, Edit, Eye, EyeOff } from "lucide-react"
+import { Plus, Edit, Trash2, Archive } from "lucide-react"
 
 interface Discount {
   id: string
@@ -48,6 +48,10 @@ export default function DiscountManager() {
   const [showMinSubtotalInput, setShowMinSubtotalInput] = useState(true)
   const [tempAmountInput, setTempAmountInput] = useState("5.00")
   const [tempMinSubtotalInput, setTempMinSubtotalInput] = useState("0.00")
+  const [showArchive, setShowArchive] = useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null)
+  const [showArchiveConfirm, setShowArchiveConfirm] = useState<string | null>(null)
+  const [showActivateConfirm, setShowActivateConfirm] = useState<string | null>(null)
 
   useEffect(() => {
     fetchDiscounts()
@@ -148,6 +152,25 @@ export default function DiscountManager() {
     }
   }
 
+  const handleDeleteDiscount = async (id: string) => {
+    try {
+      const response = await fetch(`/api/admin/discounts/${id}`, {
+        method: "DELETE"
+      })
+
+      if (response.ok) {
+        setShowDeleteConfirm(null)
+        fetchDiscounts()
+      } else {
+        const error = await response.json()
+        setApiError(error.error || "Failed to delete discount")
+      }
+    } catch (error) {
+      console.error("Error deleting discount:", error)
+      setApiError("Failed to delete discount")
+    }
+  }
+
   const formatAmount = (cents: number) => {
     return `$${(cents / 100).toFixed(2)}`
   }
@@ -155,16 +178,26 @@ export default function DiscountManager() {
 
 
   const formatDiscount = (discount: Discount) => {
+    let discountText = ""
     if (discount.type === "percent" && discount.percentOff) {
-      return `${discount.percentOff}% off`
+      discountText = `${discount.percentOff}% off`
     } else if (discount.amountOffCents) {
       const amount = formatAmount(discount.amountOffCents)
       if (discount.minSubtotalCents) {
-        return `${amount} off when you spend ${formatAmount(discount.minSubtotalCents)}`
+        discountText = `${amount} off when you spend ${formatAmount(discount.minSubtotalCents)}`
+      } else {
+        discountText = `${amount} off`
       }
-      return `${amount} off`
+    } else {
+      discountText = "Discount"
     }
-    return "Discount"
+    
+    // add for newcomers if it's for new customer discount
+    if (discount.type === "newcomer") {
+      discountText += " for new customers"
+    }
+    
+    return discountText
   }
 
   const resetForm = () => {
@@ -192,10 +225,19 @@ export default function DiscountManager() {
       {/* header */}
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-[#4A2F1B]">Discount Management</h2>
-        <Button onClick={() => setShowCreateForm(true)}>
-          <Plus className="w-4 h-4" />
-          Create Discount
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            onClick={() => setShowArchive(!showArchive)}
+          >
+            <Archive className="w-4 h-4 mr-2" />
+            {showArchive ? "View Active" : "View Archive"}
+          </Button>
+          <Button onClick={() => setShowCreateForm(true)}>
+            <Plus className="w-4 h-4" />
+            Create Discount
+          </Button>
+        </div>
       </div>
 
       {/* create/edit form */}
@@ -435,7 +477,9 @@ export default function DiscountManager() {
 
       {/* discounts list */}
       <div className="grid gap-4">
-        {discounts.map((discount) => (
+        {discounts
+          .filter(discount => showArchive ? !discount.active : discount.active)
+          .map((discount) => (
           <Card key={discount.id}>
             <CardContent className="p-4">
               <div className="flex justify-between items-start">
@@ -462,19 +506,22 @@ export default function DiscountManager() {
                     </p>
                   )}
                   
-                                     {discount.showBanner && discount.bannerMessage && (
-                     <p className="text-sm text-blue-600 mt-2">&ldquo;{discount.bannerMessage}&rdquo;</p>
-                   )}
+                  {discount.showBanner && discount.bannerMessage && (
+                    <p className="text-sm text-blue-600 mt-2">&ldquo;{discount.bannerMessage}&rdquo;</p>
+                  )}
                 </div>
 
                 <div className="flex space-x-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleUpdateDiscount(discount.id, { active: !discount.active })}
-                  >
-                    {discount.active ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </Button>
+                  {!showArchive && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowArchiveConfirm(discount.id)}
+                    >
+                      <Archive className="w-4 h-4 mr-1" />
+                      Archive
+                    </Button>
+                  )}
                   <Button
                     variant="outline"
                     size="sm"
@@ -492,8 +539,29 @@ export default function DiscountManager() {
                       })
                     }}
                   >
-                    <Edit className="w-4 h-4" />
+                    <Edit className="w-4 h-4 mr-1" />
+                    Edit
                   </Button>
+                  {showArchive && (
+                    <>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setShowActivateConfirm(discount.id)}
+                      >
+                        <Plus className="w-4 h-4 mr-1" />
+                        Activate
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setShowDeleteConfirm(discount.id)}
+                      >
+                        <Trash2 className="w-4 h-4 mr-1" />
+                        Delete
+                      </Button>
+                    </>
+                  )}
                 </div>
               </div>
             </CardContent>
@@ -501,12 +569,106 @@ export default function DiscountManager() {
         ))}
       </div>
 
-      {discounts.length === 0 && !loading && (
+      {discounts.filter(discount => showArchive ? !discount.active : discount.active).length === 0 && !loading && (
         <Card>
           <CardContent className="p-8 text-center">
-            <p className="text-gray-500">No discounts created yet. Create your first discount to get started!</p>
+            <p className="text-gray-500">
+              {showArchive 
+                ? "No archived discounts found." 
+                : "No active discounts found. Create your first discount to get started!"
+              }
+            </p>
           </CardContent>
         </Card>
+      )}
+
+      {/* archive confirmation dialog */}
+      {showArchiveConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <Card className="w-96">
+            <CardHeader>
+              <CardTitle>Confirm Archive</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="mb-4">Are you sure you want to archive this discount? Archiving will make this discount inactive and it will no longer be usable.</p>
+              <div className="flex gap-2 justify-end">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setShowArchiveConfirm(null)}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  variant="destructive"
+                  onClick={() => {
+                    handleUpdateDiscount(showArchiveConfirm, { active: false })
+                    setShowArchiveConfirm(null)
+                  }}
+                >
+                  Archive
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* activate confirmation dialog */}
+      {showActivateConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <Card className="w-96">
+            <CardHeader>
+              <CardTitle>Confirm Activate</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="mb-4">Are you sure you want to activate this discount? It will make this discount active and usable again.</p>
+              <div className="flex gap-2 justify-end">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setShowActivateConfirm(null)}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={() => {
+                    handleUpdateDiscount(showActivateConfirm, { active: true })
+                    setShowActivateConfirm(null)
+                  }}
+                >
+                  Activate
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* del confirmation dialog */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <Card className="w-96">
+            <CardHeader>
+              <CardTitle>Confirm Delete</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="mb-4">Are you sure you want to delete this discount? This action cannot be undone.</p>
+              <div className="flex gap-2 justify-end">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setShowDeleteConfirm(null)}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  variant="destructive"
+                  onClick={() => handleDeleteDiscount(showDeleteConfirm)}
+                >
+                  Delete
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       )}
     </div>
   )

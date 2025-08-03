@@ -33,23 +33,25 @@ export async function GET() {
 
     const couponMap = new Map(coupons.data.map(coupon => [coupon.id, coupon]))
 
-    // format the response
-    const discounts = promotionCodes.data.map(promotionCode => {
-      const coupon = couponMap.get(promotionCode.coupon.id) as ExtendedCoupon
-      return {
-        id: promotionCode.id,
-        code: promotionCode.code,
-        active: promotionCode.active,
-        type: coupon?.metadata?.type || "fixed",
-        percentOff: coupon?.percent_off,
-        amountOffCents: coupon?.amount_off,
-        minSubtotalCents: promotionCode.restrictions?.minimum_amount || null,
-        expiresAt: coupon?.redeem_by ? new Date(coupon.redeem_by * 1000).toISOString() : null,
-        showBanner: promotionCode.metadata?.showBanner === "true",
-        bannerMessage: promotionCode.metadata?.bannerMessage || "",
-        createdAt: new Date(promotionCode.created * 1000).toISOString()
-      }
-    })
+    // format the response and filter out deleted discounts
+    const discounts = promotionCodes.data
+      .filter(promotionCode => promotionCode.metadata?.deleted !== "true")
+      .map(promotionCode => {
+        const coupon = couponMap.get(promotionCode.coupon.id) as ExtendedCoupon
+        return {
+          id: promotionCode.id,
+          code: promotionCode.code,
+          active: promotionCode.active,
+          type: coupon?.metadata?.type || "fixed",
+          percentOff: coupon?.percent_off,
+          amountOffCents: coupon?.amount_off,
+          minSubtotalCents: promotionCode.restrictions?.minimum_amount || null,
+          expiresAt: coupon?.redeem_by ? new Date(coupon.redeem_by * 1000).toISOString() : null,
+          showBanner: promotionCode.metadata?.showBanner === "true",
+          bannerMessage: promotionCode.metadata?.bannerMessage || "",
+          createdAt: new Date(promotionCode.created * 1000).toISOString()
+        }
+      })
 
     return NextResponse.json({ discounts })
 

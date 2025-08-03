@@ -84,7 +84,7 @@ export async function GET(
       type: coupon.metadata?.type || "fixed",
       percentOff: coupon.percent_off,
       amountOffCents: coupon.amount_off,
-      minSubtotalCents: (coupon as Stripe.Coupon & { min_amount?: number })?.min_amount,
+      minSubtotalCents: promotionCode.restrictions?.minimum_amount || null,
       expiresAt: coupon.redeem_by ? new Date(coupon.redeem_by * 1000).toISOString() : null,
       showBanner: promotionCode.metadata?.showBanner === "true",
       bannerMessage: promotionCode.metadata?.bannerMessage || "",
@@ -95,6 +95,39 @@ export async function GET(
     console.error("Error fetching discount:", error)
     return NextResponse.json({ 
       error: "Failed to fetch discount",
+      details: error instanceof Error ? error.message : "Unknown error"
+    }, { status: 500 })
+  }
+}
+
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params
+
+    if (!id) {
+      return NextResponse.json({ error: "Missing discount ID" }, { status: 400 })
+    }
+
+    // mark the promotion code as inactive and add a "deleted" flag to metadata
+    await stripe.promotionCodes.update(id, { 
+      active: false,
+      metadata: {
+        deleted: "true"
+      }
+    })
+
+    return NextResponse.json({
+      success: true,
+      message: "Discount deleted successfully"
+    })
+
+  } catch (error) {
+    console.error("Error deleting discount:", error)
+    return NextResponse.json({ 
+      error: "Failed to delete discount",
       details: error instanceof Error ? error.message : "Unknown error"
     }, { status: 500 })
   }
