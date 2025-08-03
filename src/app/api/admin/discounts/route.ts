@@ -43,7 +43,7 @@ export async function GET() {
         type: coupon?.metadata?.type || "fixed",
         percentOff: coupon?.percent_off,
         amountOffCents: coupon?.amount_off,
-        minSubtotalCents: coupon?.min_amount,
+        minSubtotalCents: promotionCode.restrictions?.minimum_amount || null,
         expiresAt: coupon?.redeem_by ? new Date(coupon.redeem_by * 1000).toISOString() : null,
         showBanner: promotionCode.metadata?.showBanner === "true",
         bannerMessage: promotionCode.metadata?.bannerMessage || "",
@@ -100,10 +100,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // set minimum subtotal if provided
-    if (body.minSubtotalCents) {
-      (couponData as Stripe.CouponCreateParams & { min_amount?: number }).min_amount = body.minSubtotalCents
-    }
+    // note: minimum amount will be set on promotion code restrictions instead of coupon
 
     // set expiry if provided
     if (body.expiresAt) {
@@ -123,6 +120,14 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // set minimum amount restriction on promotion code if provided
+    if (body.minSubtotalCents) {
+      promotionCodeData.restrictions = {
+        minimum_amount: body.minSubtotalCents,
+        minimum_amount_currency: 'usd'
+      }
+    }
+
     const promotionCode = await stripe.promotionCodes.create(promotionCodeData)
 
     return NextResponse.json({
@@ -134,7 +139,7 @@ export async function POST(req: NextRequest) {
         type: body.type,
         percentOff: coupon.percent_off,
         amountOffCents: coupon.amount_off,
-        minSubtotalCents: (coupon as ExtendedCoupon)?.min_amount,
+        minSubtotalCents: null, // will be read from promotion code restrictions in GET
         expiresAt: body.expiresAt,
         showBanner: body.showBanner,
         bannerMessage: body.bannerMessage || ""

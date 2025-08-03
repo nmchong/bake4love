@@ -37,11 +37,17 @@ export default function DiscountManager() {
   const [editingDiscount, setEditingDiscount] = useState<Discount | null>(null)
   const [formData, setFormData] = useState<CreateDiscountForm>({
     code: "",
-    type: "fixed",
-    amountOffCents: 500,
+    type: "percent",
+    percentOff: 20,
     showBanner: false,
     bannerMessage: ""
   })
+  const [validationErrors, setValidationErrors] = useState<string[]>([])
+  const [apiError, setApiError] = useState<string>("")
+  const [showAmountInput, setShowAmountInput] = useState(true)
+  const [showMinSubtotalInput, setShowMinSubtotalInput] = useState(true)
+  const [tempAmountInput, setTempAmountInput] = useState("5.00")
+  const [tempMinSubtotalInput, setTempMinSubtotalInput] = useState("0.00")
 
   useEffect(() => {
     fetchDiscounts()
@@ -61,7 +67,39 @@ export default function DiscountManager() {
     }
   }
 
+  const validateForm = () => {
+    const errors: string[] = []
+    
+    if (!formData.code.trim()) errors.push("Discount code is required")
+    if (!formData.type) errors.push("Discount type is required")
+    
+    if (formData.type === "percent" && !formData.percentOff) {
+      errors.push("Percent off is required for percent type")
+    }
+    
+    if ((formData.type === "fixed" || formData.type === "newcomer") && !formData.amountOffCents) {
+      errors.push("Amount off is required for fixed/newcomer type")
+    }
+    
+    if (formData.type === "fixed" && !formData.minSubtotalCents) {
+      errors.push("Minimum subtotal is required for fixed amount type")
+    }
+    
+    if (formData.showBanner && !formData.bannerMessage.trim()) {
+      errors.push("Banner message is required when showing banner")
+    }
+    
+    return errors
+  }
+
   const handleCreateDiscount = async () => {
+    const errors = validateForm()
+    setValidationErrors(errors)
+    setApiError("")
+    if (errors.length > 0) {
+      return
+    }
+
     try {
       const response = await fetch("/api/admin/discounts", {
         method: "POST",
@@ -81,11 +119,11 @@ export default function DiscountManager() {
         fetchDiscounts()
       } else {
         const error = await response.json()
-        alert(`Error: ${error.error}`)
+        setApiError(error.error || "Failed to create discount")
       }
     } catch (error) {
       console.error("Error creating discount:", error)
-      alert("Failed to create discount")
+      setApiError(`Failed to create discount: ${error}`)
     }
   }
 
@@ -102,17 +140,19 @@ export default function DiscountManager() {
         fetchDiscounts()
       } else {
         const error = await response.json()
-        alert(`Error: ${error.error}`)
+        setApiError(error.error || "Failed to update discount")
       }
     } catch (error) {
       console.error("Error updating discount:", error)
-      alert("Failed to update discount")
+      setApiError("Failed to update discount")
     }
   }
 
   const formatAmount = (cents: number) => {
     return `$${(cents / 100).toFixed(2)}`
   }
+
+
 
   const formatDiscount = (discount: Discount) => {
     if (discount.type === "percent" && discount.percentOff) {
@@ -130,11 +170,15 @@ export default function DiscountManager() {
   const resetForm = () => {
     setFormData({
       code: "",
-      type: "fixed",
-      amountOffCents: 500,
+      type: "percent",
+      percentOff: 20,
       showBanner: false,
       bannerMessage: ""
     })
+    setShowAmountInput(true)
+    setShowMinSubtotalInput(true)
+    setTempAmountInput("5.00")
+    setTempMinSubtotalInput("0.00")
     setShowCreateForm(false)
     setEditingDiscount(null)
   }
@@ -165,7 +209,9 @@ export default function DiscountManager() {
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium mb-2">Discount Code</label>
+                <label className="block text-sm font-medium mb-2">
+                  Discount Code <span className="text-red-500">*</span>
+                </label>
                 <input
                   type="text"
                   value={formData.code}
@@ -176,21 +222,25 @@ export default function DiscountManager() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">Type</label>
+                <label className="block text-sm font-medium mb-2">
+                  Type <span className="text-red-500">*</span>
+                </label>
                 <select
                   value={formData.type}
                   onChange={(e) => setFormData({ ...formData, type: e.target.value as "percent" | "fixed" | "newcomer" })}
                   className="w-full px-3 py-2 border border-[#D4B494] rounded-md focus:outline-none focus:ring-2 focus:ring-[#A4551E]"
                 >
-                  <option value="percent">Percent Off</option>
-                  <option value="fixed">Fixed Amount Off</option>
-                  <option value="newcomer">Newcomer Discount</option>
+                  <option value="percent">Percent Off (20% off)</option>
+                  <option value="fixed">Fixed Amount Off ($5 off when you spend $30)</option>
+                  <option value="newcomer">Newcomer Discount ($5 off your first order)</option>
                 </select>
               </div>
 
               {formData.type === "percent" && (
                 <div>
-                  <label className="block text-sm font-medium mb-2">Percent Off</label>
+                  <label className="block text-sm font-medium mb-2">
+                    Percent Off <span className="text-red-500">*</span>
+                  </label>
                   <input
                     type="number"
                     value={formData.percentOff || ""}
@@ -205,36 +255,119 @@ export default function DiscountManager() {
 
               {(formData.type === "fixed" || formData.type === "newcomer") && (
                 <div>
-                  <label className="block text-sm font-medium mb-2">Amount Off (cents)</label>
-                  <input
-                    type="number"
-                    value={formData.amountOffCents || ""}
-                    onChange={(e) => setFormData({ ...formData, amountOffCents: Number(e.target.value) })}
-                    className="w-full px-3 py-2 border border-[#D4B494] rounded-md focus:outline-none focus:ring-2 focus:ring-[#A4551E]"
-                    placeholder="500"
-                    min="1"
-                  />
+                  <label className="block text-sm font-medium mb-2">
+                    Amount Off <span className="text-red-500">*</span>
+                  </label>
+                  {!showAmountInput ? (
+                    <div className="flex items-center justify-between p-3 border border-[#D4B494] rounded-md">
+                      <span className="text-[#4A2F1B]">
+                        {formData.amountOffCents ? `$${(formData.amountOffCents / 100).toFixed(2)}` : "Enter amount"}
+                      </span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setShowAmountInput(true)
+                          setTempAmountInput(formData.amountOffCents ? (formData.amountOffCents / 100).toFixed(2) : "")
+                        }}
+                      >
+                        Edit
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="flex gap-2">
+                      <div className="flex items-center border border-[#D4B494] rounded-md flex-1">
+                        <span className="px-3 py-2 text-[#4A2F1B] bg-gray-50 border-r border-[#D4B494]">$</span>
+                        <input
+                          type="number"
+                          placeholder="5.00"
+                          value={tempAmountInput}
+                          onChange={(e) => setTempAmountInput(e.target.value)}
+                          className="w-full px-3 py-2 focus:outline-none"
+                          min="0"
+                          step="0.01"
+                        />
+                      </div>
+                      <Button
+                        onClick={() => {
+                          const amount = parseFloat(tempAmountInput) * 100
+                          if (!isNaN(amount) && amount >= 0) {
+                            setFormData({ ...formData, amountOffCents: amount })
+                            setShowAmountInput(false)
+                          }
+                        }}
+                      >
+                        Ok
+                      </Button>
+                    </div>
+                  )}
                 </div>
               )}
 
               <div>
-                <label className="block text-sm font-medium mb-2">Minimum Subtotal (cents)</label>
-                <input
-                  type="number"
-                  value={formData.minSubtotalCents || ""}
-                  onChange={(e) => setFormData({ ...formData, minSubtotalCents: Number(e.target.value) })}
-                  className="w-full px-3 py-2 border border-[#D4B494] rounded-md focus:outline-none focus:ring-2 focus:ring-[#A4551E]"
-                  placeholder="3000"
-                  min="0"
-                />
+                <label className="block text-sm font-medium mb-2">
+                  Minimum Subtotal {formData.type === "fixed" && <span className="text-red-500">*</span>}
+                </label>
+                {!showMinSubtotalInput ? (
+                  <div className="flex items-center justify-between p-3 border border-[#D4B494] rounded-md">
+                    <span className="text-[#4A2F1B]">
+                      {formData.minSubtotalCents ? `$${(formData.minSubtotalCents / 100).toFixed(2)}` : "Enter minimum spend"}
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setShowMinSubtotalInput(true)
+                        setTempMinSubtotalInput(formData.minSubtotalCents ? (formData.minSubtotalCents / 100).toFixed(2) : "")
+                      }}
+                    >
+                      Edit
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="flex gap-2">
+                    <div className="flex items-center border border-[#D4B494] rounded-md flex-1">
+                      <span className="px-3 py-2 text-[#4A2F1B] bg-gray-50 border-r border-[#D4B494]">$</span>
+                      <input
+                        type="number"
+                        placeholder="0.00"
+                        value={tempMinSubtotalInput}
+                        onChange={(e) => setTempMinSubtotalInput(e.target.value)}
+                        className="w-full px-3 py-2 focus:outline-none"
+                        min="0"
+                        step="0.01"
+                      />
+                    </div>
+                    <Button
+                      onClick={() => {
+                        const amount = parseFloat(tempMinSubtotalInput) * 100
+                        if (!isNaN(amount) && amount >= 0) {
+                          setFormData({ ...formData, minSubtotalCents: amount })
+                          setShowMinSubtotalInput(false)
+                        }
+                      }}
+                    >
+                      Ok
+                    </Button>
+                  </div>
+                )}
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">Expiry Date</label>
+                <label className="block text-sm font-medium mb-2">Expiry Date (valid through)</label>
                 <input
-                  type="datetime-local"
-                  value={formData.expiresAt || ""}
-                  onChange={(e) => setFormData({ ...formData, expiresAt: e.target.value })}
+                  type="date"
+                  value={formData.expiresAt ? formData.expiresAt.split('T')[0] : ""}
+                  onChange={(e) => {
+                    if (e.target.value) {
+                      // set to end of day (11:59 PM)
+                      const date = new Date(e.target.value)
+                      date.setHours(23, 59, 59, 999)
+                      setFormData({ ...formData, expiresAt: date.toISOString() })
+                    } else {
+                      setFormData({ ...formData, expiresAt: "" })
+                    }
+                  }}
                   className="w-full px-3 py-2 border border-[#D4B494] rounded-md focus:outline-none focus:ring-2 focus:ring-[#A4551E]"
                 />
               </div>
@@ -256,17 +389,37 @@ export default function DiscountManager() {
 
               {formData.showBanner && (
                 <div>
-                  <label className="block text-sm font-medium mb-2">Banner Message</label>
+                  <label className="block text-sm font-medium mb-2">
+                    Banner Message <span className="text-red-500">*</span>
+                  </label>
                   <input
                     type="text"
                     value={formData.bannerMessage}
                     onChange={(e) => setFormData({ ...formData, bannerMessage: e.target.value })}
                     className="w-full px-3 py-2 border border-[#D4B494] rounded-md focus:outline-none focus:ring-2 focus:ring-[#A4551E]"
-                    placeholder="30% off for a limited time! Use discount code SAVE30"
+                    placeholder="example: 30% off for a limited time! Use discount code SAVE30"
                   />
                 </div>
               )}
             </div>
+
+            {(validationErrors.length > 0 || apiError) && (
+              <div className="text-red-600 text-sm bg-red-50 p-3 rounded-md">
+                {validationErrors.length > 0 && (
+                  <>
+                    <p className="font-medium mb-1">Please fix the following errors:</p>
+                    <ul className="list-disc list-inside space-y-1">
+                      {validationErrors.map((error, index) => (
+                        <li key={index}>{error}</li>
+                      ))}
+                    </ul>
+                  </>
+                )}
+                {apiError && (
+                  <p className="font-medium">{apiError}</p>
+                )}
+              </div>
+            )}
 
             <div className="flex space-x-2">
               <Button onClick={editingDiscount ? () => handleUpdateDiscount(editingDiscount.id, formData) : handleCreateDiscount}>
