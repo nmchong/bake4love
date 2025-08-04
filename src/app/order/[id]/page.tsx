@@ -28,8 +28,11 @@ interface Order {
   pickupDate: string
   pickupTime: string
   notes?: string
-  cost: number
+  subtotalCents: number
+  discountCents: number
   tipCents: number
+  totalCents: number
+  discountCode?: string
   status: string
   createdAt: string
   orderItems: OrderItem[]
@@ -227,17 +230,27 @@ export default function OrderPage() {
           <div className="space-y-2">
             <div className="flex justify-between">
               <span>Subtotal:</span>
-              <span>${((order.cost - order.tipCents) / 100).toFixed(2)}</span>
+              <span>${(order.subtotalCents / 100).toFixed(2)}</span>
             </div>
-            {order.tipCents > 0 && (
+            {order.discountCents > 0 && (
               <div className="flex justify-between">
-                <span>Tip:</span>
-                <span>${(order.tipCents / 100).toFixed(2)}</span>
+                <span>Discount:</span>
+                <span>${(order.discountCents / 100).toFixed(2)}</span>
               </div>
             )}
+            {order.discountCode && (
+              <div className="flex justify-between">
+                <span>Discount Code:</span>
+                <span>{order.discountCode}</span>
+              </div>
+            )}
+            <div className="flex justify-between">
+              <span>Tip:</span>
+              <span>${(order.tipCents / 100).toFixed(2)}</span>
+            </div>
             <div className="flex justify-between font-semibold text-lg border-t pt-2">
               <span>Total:</span>
-              <span>${(order.cost / 100).toFixed(2)}</span>
+              <span>${(order.totalCents / 100).toFixed(2)}</span>
             </div>
           </div>
         </div>

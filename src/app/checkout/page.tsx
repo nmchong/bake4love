@@ -1,22 +1,39 @@
 "use client"
 
+import { useState, useEffect, useCallback } from "react"
+import { useCart } from "@/components/customer/CartContext"
+import { format, addDays, isBefore, isAfter, startOfDay, parseISO } from "date-fns"
+import { toZonedTime } from "date-fns-tz"
 import OrderForm, { OrderFormValues } from "@/components/customer/OrderForm"
 import OrderSummary from "@/components/customer/OrderSummary"
 import TipsSection from "@/components/customer/TipsSection"
-import { useCart } from "@/components/customer/CartContext"
-import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { useState, useEffect, useCallback } from "react"
-import { format, addDays, isBefore, isAfter, startOfDay, parseISO } from "date-fns"
-import { toZonedTime } from "date-fns-tz"
+import { useRouter } from "next/navigation"
 
 export default function CheckoutPage() {
-  const { cartItems, pickupDate, pickupTime, customerInfo, tipCents, setCustomerInfo, setTipCents } = useCart()
+  const { 
+    cartItems, 
+    pickupDate, 
+    pickupTime, 
+    tipCents, 
+    setTipCents,
+    customerInfo,
+    setCustomerInfo,
+    discountCode,
+    setDiscountCode,
+    discountCents,
+    setDiscountCents
+  } = useCart()
   const router = useRouter()
   const [form, setForm] = useState<OrderFormValues>(customerInfo)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [availableDates, setAvailableDates] = useState<{ [key: string]: boolean }>({})
+  const [discountError, setDiscountError] = useState<string | null>(null)
+  const [isValidatingDiscount, setIsValidatingDiscount] = useState(false)
+
+  const subtotalCents = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
+  const totalCents = subtotalCents - discountCents + tipCents
 
   const canSubmit =
     cartItems.length > 0 &&
@@ -41,6 +58,42 @@ export default function CheckoutPage() {
     if (!dateStr) return false;
     return availableDates[dateStr] === true;
   }, [availableDates]);
+
+  // validate discount code
+  const validateDiscountCode = async (code: string) => {
+    if (!code.trim()) {
+      setDiscountCents(0)
+      setDiscountError(null)
+      return
+    }
+
+    setIsValidatingDiscount(true)
+    setDiscountError(null)
+
+    try {
+      const res = await fetch(`/api/validate-promo?code=${encodeURIComponent(code)}&subtotal=${subtotalCents}`)
+      const data = await res.json()
+      
+      if (data.valid) {
+        setDiscountCents(data.discountCents)
+        setDiscountError(null)
+      } else {
+        setDiscountCents(0)
+        setDiscountError(data.error || "Invalid discount code")
+      }
+    } catch {
+      setDiscountCents(0)
+      setDiscountError("Failed to validate discount code")
+    } finally {
+      setIsValidatingDiscount(false)
+    }
+  }
+
+  // update customer info in context when form changes
+  const handleFormChange = (newForm: OrderFormValues) => {
+    setForm(newForm)
+    setCustomerInfo(newForm)
+  }
 
   // fetch current availability
   useEffect(() => {
@@ -85,6 +138,8 @@ export default function CheckoutPage() {
           pickupTime,
           notes: form.notes,
           tipCents,
+          discountCode: discountCode || undefined,
+          discountCents,
           cart: cartItems.map(item => ({
             menuItemId: item.id,
             quantity: item.quantity,
@@ -121,10 +176,13 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto p-4">
+    <div className="max-w-4xl mx-auto p-6">
+      
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* left column */}
+        {/* left side */}
         <div className="space-y-6">
+
           {/* back to menu */}
           <Button 
             variant="outline" 
@@ -133,35 +191,44 @@ export default function CheckoutPage() {
           >
             ← Back to Menu
           </Button>
-
-          {/* order summary & tips */}
-          <OrderSummary cartItems={cartItems} tipCents={tipCents} />
+          <OrderSummary 
+            cartItems={cartItems} 
+            subtotalCents={subtotalCents}
+            discountCents={discountCents}
+            tipCents={tipCents}
+            totalCents={totalCents}
+            discountCode={discountCode}
+            onDiscountCodeChange={setDiscountCode}
+            onValidateDiscount={validateDiscountCode}
+            isValidatingDiscount={isValidatingDiscount}
+            discountError={discountError}
+          />
+          
           <TipsSection tipCents={tipCents} onTipChange={setTipCents} />
         </div>
 
-        {/* right column */}
+        {/* right side */}
         <div className="space-y-3">
-          {/* customer info */}
-          <OrderForm values={form} onChange={(newForm) => {
-            setForm(newForm)
-            setCustomerInfo(newForm)
-          }} />
+          <OrderForm values={form} onChange={handleFormChange} />
 
           {/* text above button */}
           <p className="text-sm text-[#6B4C32] text-center">
             General pickup location is Mountain View. Exact pickup address will be revealed upon payment and sent to your email. By submitting payment, you understand that all sales are final.
           </p>
 
-          {/* proceed to payment */}
+          {error && (
+            <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-800">
+              {error}
+            </div>
+          )}
+
           <Button 
             className="w-full h-12 text-lg" 
             onClick={handleSubmit} 
-            disabled={!canSubmit}
+            disabled={!canSubmit || submitting}
           >
-            {submitting ? "Creating Checkout Session..." : "Proceed to Payment"}
+            {submitting ? "Processing..." : "Proceed to Payment"}
           </Button>
-
-          {error && <div className="text-[#843C12] mt-2">{error}</div>}
         </div>
       </div>
     </div>

@@ -21,10 +21,14 @@ interface CartContextType {
   pickupTime: string | null
   customerInfo: CustomerInfo
   tipCents: number
+  discountCode: string
+  discountCents: number
   setPickupDate: (date: string) => void
   setPickupTime: (time: string) => void
   setCustomerInfo: (info: CustomerInfo) => void
   setTipCents: (tipCents: number) => void
+  setDiscountCode: (code: string) => void
+  setDiscountCents: (cents: number) => void
   resetCart: () => void
   addToCart: (item: Omit<CartItem, "quantity">, quantity?: number) => void
   increment: (id: string, variant: "full" | "half") => void
@@ -43,6 +47,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [pickupTime, setPickupTime] = useState<string | null>(null)
   const [customerInfo, setCustomerInfo] = useState<CustomerInfo>({ name: "", email: "", notes: "" })
   const [tipCents, setTipCents] = useState(200) // Default to $2
+  const [discountCode, setDiscountCode] = useState("")
+  const [discountCents, setDiscountCents] = useState(0)
   const [hydrated, setHydrated] = useState(false)
 
   // rehydrate from localStorage on mount
@@ -56,6 +62,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         setPickupTime(parsed.pickupTime || null)
         setCustomerInfo(parsed.customerInfo || { name: "", email: "", notes: "" })
         setTipCents(parsed.tipCents || 200)
+        setDiscountCode(parsed.discountCode || "")
+        setDiscountCents(parsed.discountCents || 0)
       }
     } catch (error) {
       console.error('Error loading cart from localStorage:', error)
@@ -71,18 +79,28 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     try {
       localStorage.setItem(
         STORAGE_KEY,
-        JSON.stringify({ cartItems, pickupDate, pickupTime, customerInfo, tipCents })
+        JSON.stringify({ 
+          cartItems, 
+          pickupDate, 
+          pickupTime, 
+          customerInfo, 
+          tipCents, 
+          discountCode, 
+          discountCents 
+        })
       )
     } catch (error) {
       console.error('Error saving cart to localStorage:', error)
     }
-  }, [cartItems, pickupDate, pickupTime, customerInfo, tipCents, hydrated])
+  }, [cartItems, pickupDate, pickupTime, customerInfo, tipCents, discountCode, discountCents, hydrated])
 
   const resetCart = useCallback(() => {
     setCartItems([])
     setPickupTime(null)
     setCustomerInfo({ name: "", email: "", notes: "" })
     setTipCents(200)
+    setDiscountCode("")
+    setDiscountCents(0)
   }, [])
 
   const addToCart = (item: Omit<CartItem, "quantity">, quantity: number = 1) => {
@@ -154,10 +172,14 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       pickupTime, 
       customerInfo,
       tipCents,
+      discountCode,
+      discountCents,
       setPickupDate, 
       setPickupTime, 
       setCustomerInfo,
       setTipCents,
+      setDiscountCode,
+      setDiscountCents,
       resetCart, 
       addToCart, 
       increment, 
