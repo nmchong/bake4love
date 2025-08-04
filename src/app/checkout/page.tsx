@@ -22,7 +22,9 @@ export default function CheckoutPage() {
     discountCode,
     setDiscountCode,
     discountCents,
-    setDiscountCents
+    setDiscountCents,
+    displayDiscountCode,
+    setDisplayDiscountCode
   } = useCart()
   const router = useRouter()
   const [form, setForm] = useState<OrderFormValues>(customerInfo)
@@ -77,6 +79,7 @@ export default function CheckoutPage() {
       if (data.valid) {
         setDiscountCents(data.discountCents)
         setDiscountCode(data.promotionCodeId) // store the promotion code ID, not the code string
+        setDisplayDiscountCode(code.trim()) // store the display code (like SAVE20)
         setDiscountError(null)
       } else {
         setDiscountCents(0)
@@ -89,6 +92,14 @@ export default function CheckoutPage() {
       setIsValidatingDiscount(false)
     }
   }
+
+  // Recalculate discount when cart items change
+  useEffect(() => {
+    if (displayDiscountCode && discountCode) {
+      // Re-validate the discount with the new subtotal
+      validateDiscountCode(displayDiscountCode)
+    }
+  }, [subtotalCents])
 
   // update customer info in context when form changes
   const handleFormChange = (newForm: OrderFormValues) => {
@@ -198,8 +209,7 @@ export default function CheckoutPage() {
             discountCents={discountCents}
             tipCents={tipCents}
             totalCents={totalCents}
-            discountCode={discountCode}
-            onDiscountCodeChange={setDiscountCode}
+            discountCode={displayDiscountCode}
             onValidateDiscount={validateDiscountCode}
             isValidatingDiscount={isValidatingDiscount}
             discountError={discountError}

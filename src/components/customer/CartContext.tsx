@@ -23,12 +23,14 @@ interface CartContextType {
   tipCents: number
   discountCode: string
   discountCents: number
+  displayDiscountCode: string // the code user entered (like SAVE20)
   setPickupDate: (date: string) => void
   setPickupTime: (time: string) => void
   setCustomerInfo: (info: CustomerInfo) => void
   setTipCents: (tipCents: number) => void
   setDiscountCode: (code: string) => void
   setDiscountCents: (cents: number) => void
+  setDisplayDiscountCode: (code: string) => void
   resetCart: () => void
   addToCart: (item: Omit<CartItem, "quantity">, quantity?: number) => void
   increment: (id: string, variant: "full" | "half") => void
@@ -49,6 +51,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [tipCents, setTipCents] = useState(200) // Default to $2
   const [discountCode, setDiscountCode] = useState("")
   const [discountCents, setDiscountCents] = useState(0)
+  const [displayDiscountCode, setDisplayDiscountCode] = useState("")
   const [hydrated, setHydrated] = useState(false)
 
   // rehydrate from localStorage on mount
@@ -64,6 +67,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         setTipCents(parsed.tipCents || 200)
         setDiscountCode(parsed.discountCode || "")
         setDiscountCents(parsed.discountCents || 0)
+        setDisplayDiscountCode(parsed.displayDiscountCode || "")
       }
     } catch (error) {
       console.error('Error loading cart from localStorage:', error)
@@ -86,13 +90,14 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           customerInfo, 
           tipCents, 
           discountCode, 
-          discountCents 
+          discountCents,
+          displayDiscountCode
         })
       )
     } catch (error) {
       console.error('Error saving cart to localStorage:', error)
     }
-  }, [cartItems, pickupDate, pickupTime, customerInfo, tipCents, discountCode, discountCents, hydrated])
+  }, [cartItems, pickupDate, pickupTime, customerInfo, tipCents, discountCode, discountCents, displayDiscountCode, hydrated])
 
   const resetCart = useCallback(() => {
     setCartItems([])
@@ -101,6 +106,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     setTipCents(200)
     setDiscountCode("")
     setDiscountCents(0)
+    setDisplayDiscountCode("")
   }, [])
 
   const addToCart = (item: Omit<CartItem, "quantity">, quantity: number = 1) => {
@@ -174,12 +180,14 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       tipCents,
       discountCode,
       discountCents,
+      displayDiscountCode,
       setPickupDate, 
       setPickupTime, 
       setCustomerInfo,
       setTipCents,
       setDiscountCode,
       setDiscountCents,
+      setDisplayDiscountCode,
       resetCart, 
       addToCart, 
       increment, 

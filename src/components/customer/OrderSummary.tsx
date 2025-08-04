@@ -1,5 +1,6 @@
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
+import { useCart } from "./CartContext"
 
 interface OrderSummaryProps {
   cartItems: {
@@ -14,7 +15,6 @@ interface OrderSummaryProps {
   tipCents: number
   totalCents: number
   discountCode: string
-  onDiscountCodeChange: (code: string) => void
   onValidateDiscount: (code: string) => Promise<void>
   isValidatingDiscount: boolean
   discountError: string | null
@@ -27,28 +27,53 @@ export default function OrderSummary({
   tipCents = 0,
   totalCents,
   discountCode,
-  onDiscountCodeChange,
   onValidateDiscount,
   isValidatingDiscount,
   discountError
 }: OrderSummaryProps) {
+  const { setDiscountCode, setDiscountCents, setDisplayDiscountCode } = useCart()
   const [discountInput, setDiscountInput] = useState("") // display the user-entered code
+  const [displayDiscountCode, setLocalDisplayDiscountCode] = useState(discountCode) // the code user entered (like SAVE20)
+
+  // recalculate discount when cart items change
+  useEffect(() => {
+    if (discountCode && discountCode !== displayDiscountCode) {
+      // this means we have a stored promotion code ID, but need to re-validate with new subtotal
+      if (displayDiscountCode) {
+        onValidateDiscount(displayDiscountCode)
+      }
+    }
+  }, [subtotalCents, discountCode, displayDiscountCode, onValidateDiscount])
+
+  // update local display when prop changes
+  useEffect(() => {
+    setLocalDisplayDiscountCode(discountCode)
+  }, [discountCode])
 
   const handleDiscountSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    onValidateDiscount(discountInput)
+    if (discountInput.trim()) {
+      onValidateDiscount(discountInput.trim())
+    }
+  }
+
+  const handleClearDiscount = () => {
+    setDiscountCode("")
+    setDiscountCents(0)
+    setDisplayDiscountCode("")
+    setLocalDisplayDiscountCode("")
+    setDiscountInput("")
   }
 
   const handleDiscountInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value
     setDiscountInput(value)
-    onDiscountCodeChange(value)
   }
 
   // update display when discount code changes from external source
-  React.useEffect(() => {
+  useEffect(() => {
     if (!discountCode) {
-      setDiscountInput("")
+      setLocalDisplayDiscountCode("")
     }
   }, [discountCode])
 
@@ -68,29 +93,47 @@ export default function OrderSummary({
         ))}
       </ul>
 
-      {/* discount code input */}
+      {/* discount code input/display */}
       <div className="mt-4 py-4 border-t border-gray-200">
-        <form onSubmit={handleDiscountSubmit} className="space-y-2">
-          <div className="flex gap-2">
-            <input
-              type="text"
-              placeholder="Discount code"
-              value={discountInput}
-              onChange={handleDiscountInputChange}
-              className="flex-1 border rounded-lg px-3 py-2 text-sm"
-            />
+        {!displayDiscountCode ? (
+          // show input when no discount code
+          <form onSubmit={handleDiscountSubmit} className="space-y-2">
+            <div className="flex gap-2">
+              <input
+                type="text"
+                placeholder="Discount code"
+                value={discountInput}
+                onChange={handleDiscountInputChange}
+                className="flex-1 border rounded-lg px-3 py-2 text-sm"
+              />
+              <Button 
+                type="submit" 
+                size="sm"
+                disabled={isValidatingDiscount}
+              >
+                {isValidatingDiscount ? "Validating..." : "Apply"}
+              </Button>
+            </div>
+            {discountError && (
+              <p className="text-red-600 text-sm">{discountError}</p>
+            )}
+          </form>
+        ) : (
+          // show read-only display with remove button
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium">Discount Code:</span>
+              <span className="text-sm text-green-600">{displayDiscountCode.toUpperCase()}</span>
+            </div>
             <Button 
-              type="submit" 
-              size="sm"
-              disabled={isValidatingDiscount}
+              size="sm" 
+              variant="outline"
+              onClick={handleClearDiscount}
             >
-              {isValidatingDiscount ? "Validating..." : "Apply"}
+              Remove
             </Button>
           </div>
-          {discountError && (
-            <p className="text-red-600 text-sm">{discountError}</p>
-          )}
-        </form>
+        )}
       </div>
 
       {/* pricing breakdown */}

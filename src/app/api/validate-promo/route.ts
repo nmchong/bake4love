@@ -16,7 +16,7 @@ export async function GET(req: Request) {
 
   if (!code || !subtotalParam) {
     return NextResponse.json({ error: "Missing code or subtotal parameter" }, { status: 400 })
-  }
+    }
 
   const subtotalCents = parseInt(subtotalParam)
 
