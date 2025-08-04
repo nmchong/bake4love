@@ -133,9 +133,9 @@ export async function POST(req: Request) {
     }
 
     // add discount if discount code exists, but only for menu items (not tip)
-    if (order.discountCode) {
+    if (order.discountCode && order.promotionCodeId) {
       // get promo code to understand its discount details
-      const promotionCode = await stripe.promotionCodes.retrieve(order.discountCode)
+      const promotionCode = await stripe.promotionCodes.retrieve(order.promotionCodeId)
       const originalCoupon = promotionCode.coupon
       
       // create a new coupon that only applies to menu item products (exclude tip)

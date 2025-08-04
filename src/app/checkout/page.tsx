@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { useCart } from "@/components/customer/CartContext"
 import { format, addDays, isBefore, isAfter, startOfDay, parseISO } from "date-fns"
 import { toZonedTime } from "date-fns-tz"
@@ -33,6 +33,7 @@ export default function CheckoutPage() {
   const [availableDates, setAvailableDates] = useState<{ [key: string]: boolean }>({})
   const [discountError, setDiscountError] = useState<string | null>(null)
   const [isValidatingDiscount, setIsValidatingDiscount] = useState(false)
+  const lastValidatedSubtotal = useRef(0)
 
   const subtotalCents = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
   const totalCents = subtotalCents - discountCents + tipCents
@@ -62,7 +63,7 @@ export default function CheckoutPage() {
   }, [availableDates]);
 
   // validate discount code
-  const validateDiscountCode = async (code: string) => {
+  const validateDiscountCode = useCallback(async (code: string) => {
     if (!code.trim()) {
       setDiscountCents(0)
       setDiscountError(null)
@@ -81,6 +82,7 @@ export default function CheckoutPage() {
         setDiscountCode(data.promotionCodeId) // store the promotion code ID, not the code string
         setDisplayDiscountCode(code.trim()) // store the display code (like SAVE20)
         setDiscountError(null)
+        lastValidatedSubtotal.current = subtotalCents
       } else {
         setDiscountCents(0)
         setDiscountError(data.error || "Invalid discount code")
@@ -91,15 +93,15 @@ export default function CheckoutPage() {
     } finally {
       setIsValidatingDiscount(false)
     }
-  }
+  }, [subtotalCents, setDiscountCents, setDiscountCode, setDisplayDiscountCode])
 
-  // Recalculate discount when cart items change
+  // recalculate discount when cart items change
   useEffect(() => {
-    if (displayDiscountCode && discountCode) {
-      // Re-validate the discount with the new subtotal
+    if (displayDiscountCode && discountCode && subtotalCents !== lastValidatedSubtotal.current) {
+      // re-validate the discount with the new subtotal
       validateDiscountCode(displayDiscountCode)
     }
-  }, [subtotalCents])
+  }, [subtotalCents, displayDiscountCode, discountCode, validateDiscountCode])
 
   // update customer info in context when form changes
   const handleFormChange = (newForm: OrderFormValues) => {
@@ -150,8 +152,8 @@ export default function CheckoutPage() {
           pickupTime,
           notes: form.notes,
           tipCents,
-          discountCode: discountCode || undefined,
-          discountCents,
+          discountCode: displayDiscountCode || undefined, // store user-friendly code in database
+          promotionCodeId: discountCode || undefined, // send promotion code ID for checkout
           cart: cartItems.map(item => ({
             menuItemId: item.id,
             quantity: item.quantity,
