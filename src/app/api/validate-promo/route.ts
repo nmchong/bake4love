@@ -1,28 +1,26 @@
-import { NextRequest, NextResponse } from "next/server"
+import { NextResponse } from "next/server"
 import Stripe from "stripe"
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
-
-interface ValidatePromoRequest {
-  code: string
-  email: string
-  subtotalCents: number
-}
 
 interface ExtendedCoupon extends Stripe.Coupon {
   min_amount?: number
 }
 
+// validate promo code and return discount amount
+// GET /api/validate-promo?code=CODE&subtotal=AMOUNT
+export async function GET(req: Request) {
+  const { searchParams } = new URL(req.url)
+  const code = searchParams.get("code")
+  const subtotalParam = searchParams.get("subtotal")
 
-export async function POST(req: NextRequest) {
+  if (!code || !subtotalParam) {
+    return NextResponse.json({ error: "Missing code or subtotal parameter" }, { status: 400 })
+  }
+
+  const subtotalCents = parseInt(subtotalParam)
+
   try {
-    const body: ValidatePromoRequest = await req.json()
-    const { code, email, subtotalCents } = body
-
-    if (!code || !email || subtotalCents === undefined) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
-    }
-
     // find promotion code
     const promotionCodes = await stripe.promotionCodes.list({
       code: code.toUpperCase(),
@@ -62,30 +60,6 @@ export async function POST(req: NextRequest) {
       })
     }
 
-    // check newcomer restriction
-    if (coupon.metadata?.type === "newcomer") {
-      // check if customer has previous orders in Stripe
-      const customers = await stripe.customers.list({
-        email: email,
-        limit: 1
-      })
-
-      if (customers.data.length > 0) {
-        const customer = customers.data[0]
-        const charges = await stripe.charges.list({
-          customer: customer.id,
-          limit: 1
-        })
-
-        if (charges.data.length > 0) {
-          return NextResponse.json({ 
-            valid: false, 
-            error: "This promotion is only for new customers" 
-          })
-        }
-      }
-    }
-
     // calculate discount amount
     let discountAmountCents = 0
     let discountType: "percent" | "fixed" = "fixed"
@@ -101,7 +75,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       valid: true,
       promotionCodeId: promotionCode.id,
-      discountAmountCents,
+      discountCents: discountAmountCents,
       discountType,
       couponType: coupon.metadata?.type || "fixed"
     })

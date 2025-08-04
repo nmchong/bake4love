@@ -7,7 +7,7 @@ import { fromZonedTime } from "date-fns-tz"
 export async function POST(req: Request) {
   try {
     const body = await req.json()
-    const { customerEmail, customerName, pickupDate, pickupTime, notes, cart, tipCents = 0 }: 
+    const { customerEmail, customerName, pickupDate, pickupTime, notes, cart, tipCents = 0, discountCode }: 
           { customerEmail: string;
             customerName: string;
             pickupDate: string;
@@ -15,6 +15,7 @@ export async function POST(req: Request) {
             notes?: string;
             cart: { menuItemId: string; quantity: number; variant: "full" | "half" }[]
             tipCents?: number
+            discountCode?: string
           } = body
 
     if (!customerEmail ||
@@ -36,7 +37,7 @@ export async function POST(req: Request) {
       }
     })
     const itemMap = new Map(menuItems.map(item => [item.id, item]))
-    let totalCost = 0
+    let subtotalCents = 0
     for (const item of cart) {
       const menuItem = itemMap.get(item.menuItemId)
       if (!menuItem) {
@@ -46,8 +47,11 @@ export async function POST(req: Request) {
       const price = item.variant === "half"
         ? menuItem.halfPrice ?? 0
         : menuItem.price
-      totalCost += price * item.quantity
+      subtotalCents += price * item.quantity
     }
+
+    // calculate total (subtotal + tip, discount will be applied in Stripe)
+    const totalCents = subtotalCents + tipCents
 
     // create order
     const order = await prisma.order.create({
@@ -57,8 +61,11 @@ export async function POST(req: Request) {
         pickupDate: fromZonedTime(pickupDate, "America/Los_Angeles"),
         pickupTime,
         notes,
-        cost: totalCost + tipCents,
-        tipCents: tipCents,
+        subtotalCents,
+        discountCents: 0, // discount will be applied in Stripe
+        tipCents,
+        totalCents,
+        discountCode,
         status: "pending",
         orderItems: {
           create: cart.map((item) => ({

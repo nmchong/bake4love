@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma"
 import { NextResponse } from "next/server"
 import Stripe from "stripe"
 
-// Check if required environment variables are set
+// check if required environment variables are set
 if (!process.env.STRIPE_SECRET_KEY) {
   throw new Error("STRIPE_SECRET_KEY is not set")
 }
@@ -17,7 +17,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
 
 
 // stripe checkout session
-// POST /api/checkout { orderId }
+// POST /api/checkout { orderId, tipCents }
 export async function POST(req: Request) {
   try {
     const body = await req.json()
@@ -71,7 +71,7 @@ export async function POST(req: Request) {
     console.log("Line items created:", line_items.length)
 
     // create stripe checkout session
-    const session = await stripe.checkout.sessions.create({
+    const sessionConfig: Stripe.Checkout.SessionCreateParams = {
       payment_method_types: ["card"],
       line_items: line_items,
       mode: "payment",
@@ -81,7 +81,10 @@ export async function POST(req: Request) {
       metadata: {
         orderId: order.id,
       },
-    })
+      allow_promotion_codes: false, // don't allow customers to enter promotion codes in Stripe checkout
+    }
+
+    const session = await stripe.checkout.sessions.create(sessionConfig)
 
     console.log("Stripe session created:", session.id)
 
