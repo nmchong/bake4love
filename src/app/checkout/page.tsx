@@ -76,6 +76,7 @@ export default function CheckoutPage() {
       
       if (data.valid) {
         setDiscountCents(data.discountCents)
+        setDiscountCode(data.promotionCodeId) // store the promotion code ID, not the code string
         setDiscountError(null)
       } else {
         setDiscountCents(0)

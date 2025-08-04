@@ -81,7 +81,11 @@ export async function POST(req: Request) {
       metadata: {
         orderId: order.id,
       },
-      allow_promotion_codes: false, // don't allow customers to enter promotion codes in Stripe checkout
+    }
+
+    // add discount if discount code exists
+    if (order.discountCode) {
+      sessionConfig.discounts = [{ promotion_code: order.discountCode }]
     }
 
     const session = await stripe.checkout.sessions.create(sessionConfig)

@@ -1,6 +1,5 @@
 import React, { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { useCart } from "./CartContext"
 
 interface OrderSummaryProps {
   cartItems: {
@@ -33,8 +32,7 @@ export default function OrderSummary({
   isValidatingDiscount,
   discountError
 }: OrderSummaryProps) {
-  const { setDiscountCode } = useCart()
-  const [discountInput, setDiscountInput] = useState(discountCode)
+  const [discountInput, setDiscountInput] = useState("") // display the user-entered code
 
   const handleDiscountSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -44,9 +42,15 @@ export default function OrderSummary({
   const handleDiscountInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value
     setDiscountInput(value)
-    setDiscountCode(value)
     onDiscountCodeChange(value)
   }
+
+  // update display when discount code changes from external source
+  React.useEffect(() => {
+    if (!discountCode) {
+      setDiscountInput("")
+    }
+  }, [discountCode])
 
   return (
     <div className="p-4 border rounded-md shadow-md bg-[#FAF7ED] text-[#4A2F1B]">
