@@ -11,10 +11,52 @@ if (!process.env.NEXT_PUBLIC_BASE_URL) {
   throw new Error("NEXT_PUBLIC_BASE_URL is not set")
 }
 
-
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
 
+// helper func to get or create a product for a menu item
+async function getOrCreateProduct(menuItem: { id: string; name: string }, variant: string): Promise<string> {
+  const productName = `${menuItem.name} (${variant})`
+  const productId = `prod_${menuItem.id}_${variant}`
+  
+  try {
+    // try to retrieve existing product
+    const existingProduct = await stripe.products.retrieve(productId)
+    return existingProduct.id
+  } catch {
+    // product doesn't exist, create it
+    const product = await stripe.products.create({
+      id: productId,
+      name: productName,
+      metadata: {
+        menuItemId: menuItem.id,
+        variant: variant,
+        discountable: 'true'
+      }
+    })
+    return product.id
+  }
+}
 
+// helper function to get or create tip product
+async function getOrCreateTipProduct(): Promise<string> {
+  const tipProductId = 'prod_tip'
+  
+  try {
+    // try to retrieve existing tip product
+    const existingProduct = await stripe.products.retrieve(tipProductId)
+    return existingProduct.id
+  } catch {
+    // tip product doesn't exist, create it
+    const product = await stripe.products.create({
+      id: tipProductId,
+      name: 'Tip (optional)',
+      metadata: {
+        no_discount: 'true'
+      }
+    })
+    return product.id
+  }
+}
 
 // stripe checkout session
 // POST /api/checkout { orderId, tipCents }
@@ -42,30 +84,37 @@ export async function POST(req: Request) {
 
     console.log("Order found:", order.id, "Items:", order.orderItems.length)
 
-    // stripe line items
-    const line_items = order.orderItems.map((item) => ({
-      price_data: {
-        currency: "usd",
-        product_data: {
-          name: `${item.menuItem.name} (${item.variant})`,
+    // create products and line items
+    const line_items = []
+    const productIds = []
+    
+    for (const item of order.orderItems) {
+      const productId = await getOrCreateProduct(item.menuItem, item.variant)
+      productIds.push(productId)
+      
+      line_items.push({
+        price_data: {
+          currency: "usd",
+          product: productId,
+          unit_amount: item.variant === "half"
+            ? item.menuItem.halfPrice ?? 0
+            : item.menuItem.price,
         },
-        unit_amount: item.variant === "half"
-          ? item.menuItem.halfPrice ?? 0
-          : item.menuItem.price,
-      },
-      quantity: item.quantity,
-    }))
+        quantity: item.quantity,
+      })
+    }
 
-    // add tip if provided
+    // add tip if provided (as separate product)
     if (tipCents > 0) {
+      const tipProductId = await getOrCreateTipProduct()
       line_items.push({
         price_data: {
           currency: 'usd',
-          product_data: { name: 'Tip (optional)' },
+          product: tipProductId,
           unit_amount: tipCents,
         },
         quantity: 1,
-      });
+      })
     }
 
     console.log("Line items created:", line_items.length)
@@ -83,9 +132,33 @@ export async function POST(req: Request) {
       },
     }
 
-    // add discount if discount code exists
+    // add discount if discount code exists, but only for menu items (not tip)
     if (order.discountCode) {
-      sessionConfig.discounts = [{ promotion_code: order.discountCode }]
+      // get promo code to understand its discount details
+      const promotionCode = await stripe.promotionCodes.retrieve(order.discountCode)
+      const originalCoupon = promotionCode.coupon
+      
+      // create a new coupon that only applies to menu item products (exclude tip)
+      const couponData: Stripe.CouponCreateParams = {
+        duration: 'once',
+        applies_to: {
+          products: productIds // only apply to menu item products (exclude tip)
+        }
+      }
+      
+      // copy the discount type from the original coupon
+      if (originalCoupon.percent_off) {
+        couponData.percent_off = originalCoupon.percent_off
+      } else if (originalCoupon.amount_off) {
+        couponData.amount_off = originalCoupon.amount_off
+        if (originalCoupon.currency) {
+          couponData.currency = originalCoupon.currency
+        }
+      }
+      
+      const selectiveCoupon = await stripe.coupons.create(couponData)
+      
+      sessionConfig.discounts = [{ coupon: selectiveCoupon.id }]
     }
 
     const session = await stripe.checkout.sessions.create(sessionConfig)
