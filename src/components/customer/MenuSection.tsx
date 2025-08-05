@@ -31,7 +31,13 @@ export default function MenuSection({ items, selectedDate, onMenuItemClick, disa
       </div>
 
       {selectedItem && !onMenuItemClick && (
-        <MenuItemModal menuItem={selectedItem} onClose={() => setSelectedItem(null)} selectedDate={selectedDate} disableAddToCart={disableAddToCart} />
+        <MenuItemModal 
+          key={selectedItem.id} 
+          menuItem={selectedItem} 
+          onClose={() => setSelectedItem(null)} 
+          selectedDate={selectedDate} 
+          disableAddToCart={disableAddToCart} 
+        />
       )}
     </>
   )

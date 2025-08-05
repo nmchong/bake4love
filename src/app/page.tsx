@@ -148,6 +148,7 @@ export default function HomePage() {
       />
       {allItemsModal.open && allItemsModal.item && (
         <MenuItemModal
+          key={allItemsModal.item.id}
           menuItem={allItemsModal.item}
           onClose={() => setAllItemsModal({ open: false, item: null })}
           disableAddToCart={showAllItems}

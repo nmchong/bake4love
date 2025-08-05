@@ -303,7 +303,7 @@ export default function EditMenuItemModal({ open, onOpenChange, menuItem, onSave
                     <h3 className="text-lg font-semibold text-[#4A2F1B] mb-4">Pricing</h3>
                     <div className="space-y-4">
                       <div>
-                        <label className="block text-sm font-medium text-[#6B4C32] mb-2">Full Price (cents) *</label>
+                        <label className="block text-sm font-medium text-[#6B4C32] mb-2">Full Price (cents) - ex. $15.00 = 1500</label>
                         <input 
                           className="w-full border border-[#E5DED6] rounded-lg p-3 focus:outline-none focus:border-[#A4551E]"
                           type="number" 

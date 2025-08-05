@@ -93,14 +93,14 @@ export async function POST(req: Request) {
       productIds.push(productId)
       
       line_items.push({
-        price_data: {
-          currency: "usd",
+      price_data: {
+        currency: "usd",
           product: productId,
-          unit_amount: item.variant === "half"
-            ? item.menuItem.halfPrice ?? 0
-            : item.menuItem.price,
-        },
-        quantity: item.quantity,
+        unit_amount: item.variant === "half"
+          ? item.menuItem.halfPrice ?? 0
+          : item.menuItem.price,
+      },
+      quantity: item.quantity,
       })
     }
 

@@ -41,7 +41,7 @@ interface CartContextType {
 
 const CartContext = createContext<CartContextType | undefined>(undefined)
 
-const STORAGE_KEY = "joans-bakery-cart"
+const STORAGE_KEY = "bake4love-cart"
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [cartItems, setCartItems] = useState<CartItem[]>([])
@@ -111,15 +111,21 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const addToCart = (item: Omit<CartItem, "quantity">, quantity: number = 1) => {
     setCartItems(prev => {
-      const idx = prev.findIndex(
+      const existingItemIndex = prev.findIndex(
         i => i.id === item.id && i.variant === item.variant
       )
-      if (idx !== -1) {
-        const updated = [...prev]
-        updated[idx].quantity += quantity
-        return updated
+      
+      if (existingItemIndex !== -1) {
+        // update existing item
+        return prev.map((cartItem, index) => 
+          index === existingItemIndex 
+            ? { ...cartItem, quantity: cartItem.quantity + quantity }
+            : cartItem
+        )
+      } else {
+        // add new item
+        return [...prev, { ...item, quantity }]
       }
-      return [...prev, { ...item, quantity }]
     })
   }
 

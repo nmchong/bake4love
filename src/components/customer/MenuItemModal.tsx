@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useCart } from "@/components/customer/CartContext"
 import { MenuItem } from "@/types"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
@@ -22,16 +22,13 @@ export default function MenuItemModal({ menuItem, onClose, selectedDate, disable
 
   const canHalf = menuItem.hasHalfOrder && menuItem.halfPrice != null
 
-  // try to add (show date warning if needed)
-  const tryAdd = () => {
-    const date = selectedDate || "";
-    if (cartItems.length > 0 && pickupDate && pickupDate !== date) {
-      setPendingAdd({ variant, quantity })
-      setShowDateWarning(true)
-    } else {
-      doAdd(variant, quantity, date)
-    }
-  }
+  // reset modal state when menuItem changes (modal opens)
+  useEffect(() => {
+    setVariant("full")
+    setQuantity(1)
+    setShowDateWarning(false)
+    setPendingAdd(null)
+  }, [menuItem.id])
 
   // add if no date warning
   const doAdd = (variant: "full"|"half", quantity: number, date: string) => {
@@ -45,6 +42,17 @@ export default function MenuItemModal({ menuItem, onClose, selectedDate, disable
       variant
     }, quantity)
     onClose()
+  }
+
+  // try to add (show date warning if needed)
+  const tryAdd = () => {
+    const date = selectedDate || "";
+    if (cartItems.length > 0 && pickupDate && pickupDate !== date) {
+      setPendingAdd({ variant, quantity })
+      setShowDateWarning(true)
+    } else {
+      doAdd(variant, quantity, date)
+    }
   }
 
   // switch pickup date
