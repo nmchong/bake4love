@@ -36,10 +36,32 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: "No orderId in metadata" }, { status: 400 })
       }
 
-      // update order status to "paid"
+      // get the order to access current values
+      const order = await prisma.order.findUnique({
+        where: { id: orderId }
+      })
+
+      if (!order) {
+        return NextResponse.json({ error: "Order not found" }, { status: 404 })
+      }
+
+      // calculate discount amount from Stripe session
+      let discountCents = 0
+      if (session.total_details?.amount_discount) {
+        discountCents = session.total_details.amount_discount
+      }
+
+      // calculate total correctly: subtotalCents - discountCents + tipCents
+      const totalCents = order.subtotalCents - discountCents + order.tipCents
+
+      // update order status to "paid", discount amount, and correct total
       await prisma.order.update({
         where: { id: orderId },
-        data: { status: "paid" }
+        data: { 
+          status: "paid",
+          discountCents: discountCents,
+          totalCents: totalCents
+        }
       })
 
       // cart will be reset on client-side when user visits success page

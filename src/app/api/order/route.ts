@@ -7,7 +7,7 @@ import { fromZonedTime } from "date-fns-tz"
 export async function POST(req: Request) {
   try {
     const body = await req.json()
-    const { customerEmail, customerName, pickupDate, pickupTime, notes, cart, tipCents = 0, discountCode, promotionCodeId }: 
+    const { customerEmail, customerName, pickupDate, pickupTime, notes, cart, tipCents = 0, discountCode, promotionCodeId, discountDescription }: 
           { customerEmail: string;
             customerName: string;
             pickupDate: string;
@@ -17,6 +17,7 @@ export async function POST(req: Request) {
             tipCents?: number
             discountCode?: string
             promotionCodeId?: string
+            discountDescription?: string
           } = body
 
     if (!customerEmail ||
@@ -66,8 +67,9 @@ export async function POST(req: Request) {
         discountCents: 0, // discount will be applied in Stripe
         tipCents,
         totalCents,
-        discountCode: discountCode, // store the user-friendly code (like SAVE20)
+        discountCode: discountCode, // store the user-friendly code (ex. SAVE20)
         promotionCodeId: promotionCodeId, // store the Stripe promotion code ID
+        discountDescription: discountDescription, // store the discount description (ex. $5.00 off when you spend $30.00)
         status: "pending",
         orderItems: {
           create: cart.map((item) => ({

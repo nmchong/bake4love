@@ -95,7 +95,7 @@ export default function CheckoutPage() {
         
         // add minimum amount if applicable
         if (data.minAmount) {
-          description += ` when you spend $${(data.minAmount / 100).toFixed(2)}`
+          description += ` when you spend at least $${(data.minAmount / 100).toFixed(2)}`
         }
         
         setDiscountDescription(description)
@@ -181,6 +181,7 @@ export default function CheckoutPage() {
           tipCents,
           discountCode: displayDiscountCode || undefined, // store user-friendly code in database
           promotionCodeId: discountCode || undefined, // send promotion code ID for checkout
+          discountDescription: discountDescription || undefined, // store discount description
           cart: cartItems.map(item => ({
             menuItemId: item.id,
             quantity: item.quantity,

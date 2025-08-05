@@ -150,17 +150,17 @@ export default function OrderSummary({
       </div>
 
       {/* pricing breakdown */}
-      <div className="mt-4 space-y-2 py-4 border-t border-gray-200">
+      <div className="space-y-2 py-4 border-t border-gray-200">
+        <div className="flex justify-between">
+          <span>Subtotal:</span>
+          <span>${(subtotalCents / 100).toFixed(2)}</span>
+        </div>
         {discountCents > 0 && (
           <div className="flex justify-between text-green-600">
             <span>Discount:</span>
             <span>-${(discountCents / 100).toFixed(2)}</span>
           </div>
         )}
-        <div className="flex justify-between">
-          <span>Subtotal:</span>
-          <span>${((subtotalCents - discountCents) / 100).toFixed(2)}</span>
-        </div>
         {tipCents > 0 && (
           <div className="flex justify-between">
             <span>Tip:</span>

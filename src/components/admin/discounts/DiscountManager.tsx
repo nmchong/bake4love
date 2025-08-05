@@ -205,7 +205,7 @@ export default function DiscountManager() {
     } else if (discount.amountOffCents) {
       const amount = formatAmount(discount.amountOffCents)
       if (discount.minSubtotalCents) {
-        discountText = `${amount} off when you spend ${formatAmount(discount.minSubtotalCents)}`
+        discountText = `${amount} off when you spend at least ${formatAmount(discount.minSubtotalCents)}`
       } else {
         discountText = `${amount} off`
       }

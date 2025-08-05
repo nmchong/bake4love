@@ -33,6 +33,7 @@ interface Order {
   tipCents: number
   totalCents: number
   discountCode?: string
+  discountDescription?: string
   status: string
   createdAt: string
   orderItems: OrderItem[]
@@ -205,49 +206,61 @@ export default function OrderPage() {
           {order.notes && <p><span className="font-semibold">Notes:</span> {order.notes}</p>}
         </div>
 
-        {/* order items */}
-        <div className="mb-6">
-          <h2 className="font-semibold mb-4 text-[#4A2F1B]">Order Items</h2>
-          <div className="space-y-3">
-            {order.orderItems.map((item) => (
-              <div key={item.id} className="flex justify-between items-center p-3 rounded-lg border border-[#E5DED6] bg-[#FFFDF5]">
-                <div>
-                  <p className="font-medium text-[#4A2F1B]">{item.menuItem.name}</p>
-                  <p className="text-sm text-[#6B4C32]">{item.variant} • Qty: {item.quantity}</p>
-                </div>
-                <div className="text-right">
-                  <p className="font-medium text-[#4A2F1B]">
-                    ${((item.variant === "half" ? item.menuItem.halfPrice ?? 0 : item.menuItem.price) * item.quantity / 100).toFixed(2)}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+        {/* order summary similar to checkout page */}
+        <div className="p-4 border rounded-md shadow-md bg-[#FAF7ED] text-[#4A2F1B] mb-6">
+          <h2 className="text-xl font-bold mb-4">Order Summary</h2>
 
-        {/* cost breakdown (subtotal, tip, total) */}
-        <div className="mb-6 p-4 rounded-xl bg-[#FFFDF5] border border-[#E5DED6]">
-          <div className="space-y-2">
+          {/* order items */}
+          <ul className="mb-4">
+            {order.orderItems.map((item) => (
+              <li key={item.id} className="py-2 flex justify-between">
+                <span>
+                  {item.menuItem.name} ({item.variant}) x{item.quantity}
+                </span>
+                <span>${((item.variant === "half" ? item.menuItem.halfPrice ?? 0 : item.menuItem.price) * item.quantity / 100).toFixed(2)}</span>
+              </li>
+            ))}
+          </ul>
+
+          {/* discount code display */}
+          {order.discountCode && (
+            <div className="mb-4 py-4 border-t border-gray-200">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium">Discount Code:</span>
+                  <span className="text-sm text-green-600">{order.discountCode.toUpperCase()}</span>
+                </div>
+                {order.discountCents > 0 && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium">You saved:</span>
+                    <span className="text-sm text-green-600 font-semibold">${(order.discountCents / 100).toFixed(2)}</span>
+                  </div>
+                )}
+                {order.discountDescription && (
+                  <p className="text-sm text-green-600">{order.discountDescription}</p>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* pricing breakdown */}
+          <div className="space-y-2 py-4 border-t border-gray-200">
             <div className="flex justify-between">
               <span>Subtotal:</span>
               <span>${(order.subtotalCents / 100).toFixed(2)}</span>
             </div>
             {order.discountCents > 0 && (
-              <div className="flex justify-between">
+              <div className="flex justify-between text-green-600">
                 <span>Discount:</span>
-                <span>${(order.discountCents / 100).toFixed(2)}</span>
+                <span>-${(order.discountCents / 100).toFixed(2)}</span>
               </div>
             )}
-            {order.discountCode && (
+            {order.tipCents > 0 && (
               <div className="flex justify-between">
-                <span>Discount Code:</span>
-                <span>{order.discountCode}</span>
+                <span>Tip:</span>
+                <span>${(order.tipCents / 100).toFixed(2)}</span>
               </div>
             )}
-            <div className="flex justify-between">
-              <span>Tip:</span>
-              <span>${(order.tipCents / 100).toFixed(2)}</span>
-            </div>
             <div className="flex justify-between font-semibold text-lg border-t pt-2">
               <span>Total:</span>
               <span>${(order.totalCents / 100).toFixed(2)}</span>
