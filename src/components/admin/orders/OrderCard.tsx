@@ -19,9 +19,6 @@ export default function OrderCard({ order }: OrderCardProps) {
     return `${format(start, 'h:mm')}-${format(end, 'h:mm')}${format(end, 'a').toLowerCase()}`
   }
 
-  const subtotal = order.cost - order.tipCents
-  const total = order.cost
-
 
   return (
     <div className="border rounded-lg p-6 mb-4 bg-white shadow-sm">
@@ -44,15 +41,27 @@ export default function OrderCard({ order }: OrderCardProps) {
           
           <div className="border-t border-gray-200 pt-2 mt-2">
             <div>
-              <span className="font-semibold">Subtotal:</span> ${(subtotal / 100).toFixed(2)}
+              <span className="font-semibold">Subtotal:</span> ${(order.subtotalCents / 100).toFixed(2)}
             </div>
+            
+            {order.discountCents > 0 && (
+              <div>
+                <span className="font-semibold">Discount:</span> -${(order.discountCents / 100).toFixed(2)}
+              </div>
+            )}
+            
+            {order.discountCode && (
+              <div>
+                <span className="font-semibold">Discount Code:</span> {order.discountCode}
+              </div>
+            )}
             
             <div>
               <span className="font-semibold">Tips:</span> ${(order.tipCents / 100).toFixed(2)}
             </div>
             
             <div>
-              <span className="font-semibold">Total:</span> ${(total / 100).toFixed(2)}
+              <span className="font-semibold">Total:</span> ${(order.totalCents / 100).toFixed(2)}
             </div>
           </div>
         </div>

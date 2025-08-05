@@ -19,8 +19,12 @@ export interface Order {
   pickupDate: string
   pickupTime: string
   notes?: string
-  cost: number
+  subtotalCents: number
+  discountCents: number
   tipCents: number
+  totalCents: number
+  discountCode?: string
+  discountDescription?: string
   status: string
   createdAt: string
   orderItems: OrderItem[]

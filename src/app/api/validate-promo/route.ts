@@ -64,7 +64,7 @@ export async function GET(req: Request) {
     if (promotionCode.restrictions?.minimum_amount && subtotalCents < promotionCode.restrictions.minimum_amount) {
       return NextResponse.json({ 
         valid: false, 
-        error: `Minimum order amount of $${(promotionCode.restrictions.minimum_amount / 100).toFixed(2)} is required to use this discount` 
+        error: `Minimum subtotal of $${(promotionCode.restrictions.minimum_amount / 100).toFixed(2)} is required to use this discount` 
       })
     }
 
