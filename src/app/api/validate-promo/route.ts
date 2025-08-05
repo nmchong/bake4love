@@ -85,6 +85,8 @@ export async function GET(req: Request) {
       promotionCodeId: promotionCode.id,
       discountCents: discountAmountCents,
       discountType,
+      percentOff: coupon.percent_off,
+      minAmount: coupon.min_amount || promotionCode.restrictions?.minimum_amount,
       couponType: coupon.metadata?.type || "fixed"
     })
 

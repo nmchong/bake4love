@@ -15,7 +15,9 @@ interface OrderSummaryProps {
   tipCents: number
   totalCents: number
   discountCode: string
+  discountDescription?: string | null
   onValidateDiscount: (code: string) => Promise<void>
+  onClearDiscount?: () => void
   isValidatingDiscount: boolean
   discountError: string | null
 }
@@ -27,7 +29,9 @@ export default function OrderSummary({
   tipCents = 0,
   totalCents,
   discountCode,
+  discountDescription,
   onValidateDiscount,
+  onClearDiscount,
   isValidatingDiscount,
   discountError
 }: OrderSummaryProps) {
@@ -63,6 +67,10 @@ export default function OrderSummary({
     setDisplayDiscountCode("")
     setLocalDisplayDiscountCode("")
     setDiscountInput("")
+    // Call parent's clear function if provided
+    if (onClearDiscount) {
+      onClearDiscount()
+    }
   }
 
   const handleDiscountInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -120,18 +128,23 @@ export default function OrderSummary({
           </form>
         ) : (
           // show read-only display with remove button
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-medium">Discount Code:</span>
-              <span className="text-sm text-green-600">{displayDiscountCode.toUpperCase()}</span>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium">Discount Code:</span>
+                <span className="text-sm text-green-600">{displayDiscountCode.toUpperCase()}</span>
+              </div>
+              <Button 
+                size="sm" 
+                variant="outline"
+                onClick={handleClearDiscount}
+              >
+                Remove
+              </Button>
             </div>
-            <Button 
-              size="sm" 
-              variant="outline"
-              onClick={handleClearDiscount}
-            >
-              Remove
-            </Button>
+            {discountDescription && (
+              <p className="text-sm text-green-600">{discountDescription}</p>
+            )}
           </div>
         )}
       </div>

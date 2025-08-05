@@ -33,6 +33,7 @@ export default function CheckoutPage() {
   const [availableDates, setAvailableDates] = useState<{ [key: string]: boolean }>({})
   const [discountError, setDiscountError] = useState<string | null>(null)
   const [isValidatingDiscount, setIsValidatingDiscount] = useState(false)
+  const [discountDescription, setDiscountDescription] = useState<string | null>(null)
   const lastValidatedSubtotal = useRef(0)
 
   const subtotalCents = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
@@ -67,6 +68,7 @@ export default function CheckoutPage() {
     if (!code.trim()) {
       setDiscountCents(0)
       setDiscountError(null)
+      setDiscountDescription(null)
       return
     }
 
@@ -82,14 +84,31 @@ export default function CheckoutPage() {
         setDiscountCode(data.promotionCodeId) // store the promotion code ID, not the code string
         setDisplayDiscountCode(code.trim()) // store the display code (like SAVE20)
         setDiscountError(null)
+        
+        // create discount description
+        let description = ""
+        if (data.discountType === "percent") {
+          description = `${data.percentOff}% off`
+        } else {
+          description = `$${(data.discountCents / 100).toFixed(2)} off`
+        }
+        
+        // add minimum amount if applicable
+        if (data.minAmount) {
+          description += ` when you spend $${(data.minAmount / 100).toFixed(2)}`
+        }
+        
+        setDiscountDescription(description)
         lastValidatedSubtotal.current = subtotalCents
       } else {
         setDiscountCents(0)
         setDiscountError(data.error || "Invalid discount code")
+        setDiscountDescription(null)
       }
     } catch {
       setDiscountCents(0)
       setDiscountError("Failed to validate discount code")
+      setDiscountDescription(null)
     } finally {
       setIsValidatingDiscount(false)
     }
@@ -102,6 +121,14 @@ export default function CheckoutPage() {
       validateDiscountCode(displayDiscountCode)
     }
   }, [subtotalCents, displayDiscountCode, discountCode, validateDiscountCode])
+
+  // clear discount function
+  const clearDiscount = () => {
+    setDiscountCode("")
+    setDiscountCents(0)
+    setDisplayDiscountCode("")
+    setDiscountDescription(null)
+  }
 
   // update customer info in context when form changes
   const handleFormChange = (newForm: OrderFormValues) => {
@@ -190,7 +217,7 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
+    <div className="max-w-6xl mx-auto p-6">
       
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -212,9 +239,11 @@ export default function CheckoutPage() {
             tipCents={tipCents}
             totalCents={totalCents}
             discountCode={displayDiscountCode}
+            discountDescription={discountDescription}
             onValidateDiscount={validateDiscountCode}
             isValidatingDiscount={isValidatingDiscount}
             discountError={discountError}
+            onClearDiscount={clearDiscount}
           />
           
           <TipsSection tipCents={tipCents} onTipChange={setTipCents} />
