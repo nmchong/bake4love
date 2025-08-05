@@ -10,10 +10,11 @@ import Cart from "@/components/customer/Cart"
 import { useCart } from "@/components/customer/CartContext"
 import NoAvailabilityBanner from "@/components/customer/NoAvailabilityBanner";
 import MenuItemModal from "@/components/customer/MenuItemModal";
+import DiscountBanner from "@/components/customer/DiscountBanner";
 
 
 export default function HomePage() {
-  // Use null for selectedDate when All Items is selected
+  // use null for selectedDate when All Items is selected
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [availableDates, setAvailableDates] = useState<{ [key: string]: boolean }>({})
   const [menuItems, setMenuItems] = useState<MenuItem[]>([])
@@ -112,6 +113,9 @@ export default function HomePage() {
   return (
     <>
       <HeroSection />
+      <div className="max-w-6xl mx-auto px-6">
+        <DiscountBanner />
+      </div>
       {allUnavailable && <NoAvailabilityBanner />}
 
       <CalendarRow

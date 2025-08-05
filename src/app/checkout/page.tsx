@@ -7,6 +7,7 @@ import { toZonedTime } from "date-fns-tz"
 import OrderForm, { OrderFormValues } from "@/components/customer/OrderForm"
 import OrderSummary from "@/components/customer/OrderSummary"
 import TipsSection from "@/components/customer/TipsSection"
+import DiscountBanner from "@/components/customer/DiscountBanner"
 import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
 
@@ -233,6 +234,7 @@ export default function CheckoutPage() {
           >
             ← Back to Menu
           </Button>
+          <DiscountBanner size="small" className="mb-4" />
           <OrderSummary 
             cartItems={cartItems} 
             subtotalCents={subtotalCents}
