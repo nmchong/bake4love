@@ -3,13 +3,17 @@ import Stripe from "stripe"
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
 
+type DiscountType = "percent" | "fixed"
+
 interface CreateDiscountRequest {
   code: string
-  type: "percent" | "fixed" | "newcomer"
-  percentOff?: number
+  description: string
+  type: DiscountType
   amountOffCents?: number
-  minSubtotalCents?: number
+  percentOff?: number
+  maxUses?: number
   expiresAt?: string
+  minSubtotalCents?: number
   showBanner: boolean
   bannerMessage?: string
 }
@@ -69,10 +73,10 @@ export async function POST(req: NextRequest) {
     if (type === "percent") {
       couponData.percent_off = percentOff
     } else if (type === "fixed") {
+      if (!amountOffCents) {
+        return NextResponse.json({ error: "Amount off is required for fixed type" }, { status: 400 })
+      }
       couponData.amount_off = amountOffCents
-      couponData.currency = "usd"
-    } else if (type === "newcomer") {
-      couponData.amount_off = amountOffCents || 500 // default $5
       couponData.currency = "usd"
     }
 

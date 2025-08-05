@@ -7,13 +7,17 @@ interface ExtendedCoupon extends Stripe.Coupon {
   min_amount?: number
 }
 
+type DiscountType = "percent" | "fixed"
+
 interface CreateDiscountRequest {
   code: string
-  type: "percent" | "fixed" | "newcomer"
-  percentOff?: number
+  description: string
+  type: DiscountType
   amountOffCents?: number
-  minSubtotalCents?: number
+  percentOff?: number
+  maxUses?: number
   expiresAt?: string
+  minSubtotalCents?: number
   showBanner: boolean
   bannerMessage?: string
 }
@@ -91,15 +95,6 @@ export async function POST(req: NextRequest) {
       }
       couponData.amount_off = body.amountOffCents
       couponData.currency = "usd"
-    } else if (body.type === "newcomer") {
-      if (!body.amountOffCents) {
-        return NextResponse.json({ error: "Amount off is required for newcomer type" }, { status: 400 })
-      }
-      couponData.amount_off = body.amountOffCents
-      couponData.currency = "usd"
-      couponData.metadata = {
-        type: "newcomer"
-      }
     }
 
     // note: minimum amount will be set on promotion code restrictions instead of coupon

@@ -7,27 +7,31 @@ import { Plus, Edit, Trash2, Archive } from "lucide-react"
 import DatePicker from "react-datepicker"
 import "react-datepicker/dist/react-datepicker.css"
 
+type DiscountType = "percent" | "fixed"
+
 interface Discount {
   id: string
   code: string
   active: boolean
-  type: "percent" | "fixed" | "newcomer"
+  type: DiscountType
   percentOff?: number
   amountOffCents?: number
-  minSubtotalCents?: number
-  expiresAt?: string
+  minSubtotalCents?: number | null
+  expiresAt?: string | null
   showBanner: boolean
   bannerMessage: string
   createdAt: string
 }
 
-interface CreateDiscountForm {
+interface FormData {
   code: string
-  type: "percent" | "fixed" | "newcomer"
-  percentOff?: number
+  description: string
+  type: DiscountType
   amountOffCents?: number
-  minSubtotalCents?: number
+  percentOff?: number
+  maxUses?: number
   expiresAt?: string
+  minSubtotalCents?: number
   showBanner: boolean
   bannerMessage: string
 }
@@ -37,10 +41,15 @@ export default function DiscountManager() {
   const [loading, setLoading] = useState(true)
   const [showCreateForm, setShowCreateForm] = useState(false)
   const [editingDiscount, setEditingDiscount] = useState<Discount | null>(null)
-  const [formData, setFormData] = useState<CreateDiscountForm>({
+  const [formData, setFormData] = useState<FormData>({
     code: "",
-    type: "percent",
-    percentOff: 20,
+    description: "",
+    type: "fixed",
+    amountOffCents: undefined,
+    percentOff: undefined,
+    maxUses: undefined,
+    expiresAt: "",
+    minSubtotalCents: undefined,
     showBanner: false,
     bannerMessage: ""
   })
@@ -83,8 +92,8 @@ export default function DiscountManager() {
       errors.push("Percent off is required for percent type")
     }
     
-    if ((formData.type === "fixed" || formData.type === "newcomer") && !formData.amountOffCents) {
-      errors.push("Amount off is required for fixed/newcomer type")
+    if ((formData.type === "fixed") && !formData.amountOffCents) {
+      errors.push("Amount off is required for fixed type")
     }
     
     if (formData.type === "fixed" && !formData.minSubtotalCents) {
@@ -117,8 +126,13 @@ export default function DiscountManager() {
         setShowCreateForm(false)
         setFormData({
           code: "",
-          type: "percent",
-          percentOff: 20,
+          description: "",
+          type: "fixed",
+          amountOffCents: undefined,
+          percentOff: undefined,
+          maxUses: undefined,
+          expiresAt: "",
+          minSubtotalCents: undefined,
           showBanner: false,
           bannerMessage: ""
         })
@@ -200,8 +214,8 @@ export default function DiscountManager() {
     }
     
     // add for newcomers if it's for new customer discount
-    if (discount.type === "newcomer") {
-      discountText += " for new customers"
+    if (discount.type === "fixed") {
+      // handle fixed discount logic
     }
     
     return discountText
@@ -210,8 +224,13 @@ export default function DiscountManager() {
   const resetForm = () => {
     setFormData({
       code: "",
-      type: "percent",
-      percentOff: 20,
+      description: "",
+      type: "fixed",
+      amountOffCents: undefined,
+      percentOff: undefined,
+      maxUses: undefined,
+      expiresAt: "",
+      minSubtotalCents: undefined,
       showBanner: false,
       bannerMessage: ""
     })
@@ -276,12 +295,11 @@ export default function DiscountManager() {
                 </label>
                 <select
                   value={formData.type}
-                  onChange={(e) => setFormData({ ...formData, type: e.target.value as "percent" | "fixed" | "newcomer" })}
+                  onChange={(e) => setFormData({ ...formData, type: e.target.value as "percent" | "fixed" })}
                   className="w-full px-3 py-2 border border-[#D4B494] rounded-md focus:outline-none focus:ring-2 focus:ring-[#A4551E]"
                 >
-                  <option value="percent">Percent Off (20% off)</option>
-                  <option value="fixed">Fixed Amount Off ($5 off when you spend $30)</option>
-                  <option value="newcomer">Newcomer Discount ($5 off your first order)</option>
+                  <option value="fixed">Fixed Amount Off ($5 off orders over $30)</option>
+                  <option value="percent">Percentage Off (20% off orders over $30)</option>
                 </select>
               </div>
 
@@ -302,7 +320,7 @@ export default function DiscountManager() {
                 </div>
               )}
 
-              {(formData.type === "fixed" || formData.type === "newcomer") && (
+              {(formData.type === "fixed") && (
                 <div>
                   <label className="block text-sm font-medium mb-2">
                     Amount Off <span className="text-red-500">*</span>
@@ -563,13 +581,14 @@ export default function DiscountManager() {
                       setEditingDiscount(discount)
                       setFormData({
                         code: discount.code,
+                        description: discount.bannerMessage || "",
                         type: discount.type,
                         percentOff: discount.percentOff,
                         amountOffCents: discount.amountOffCents,
-                        minSubtotalCents: discount.minSubtotalCents,
-                        expiresAt: discount.expiresAt,
+                        minSubtotalCents: discount.minSubtotalCents || undefined,
+                        expiresAt: discount.expiresAt || "",
                         showBanner: discount.showBanner,
-                        bannerMessage: discount.bannerMessage
+                        bannerMessage: discount.bannerMessage || ""
                       })
                       // set the temporary input values for editing
                       setTempAmountInput(discount.amountOffCents ? (discount.amountOffCents / 100).toFixed(2) : "5.00")
