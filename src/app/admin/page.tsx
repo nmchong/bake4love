@@ -1,8 +1,12 @@
+"use client"
+
 import AdminSidebar from "@/components/admin/shared/AdminSidebar"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { ShoppingCart, Calendar, UtensilsCrossed, Tag } from "lucide-react"
+import EarningsOverview from "@/components/admin/dashboard/EarningsOverview"
+import UpcomingPickupDates from "@/components/admin/dashboard/UpcomingPickupDates"
 
 export default function AdminDashboardPage() {
   return (
@@ -11,6 +15,7 @@ export default function AdminDashboardPage() {
       <main className="flex-1 py-8 px-6 bg-[#F3E9D7]">
         <h1 className="text-2xl font-bold mb-6 text-[#4A2F1B]">Admin Dashboard</h1>
         
+        {/* quick nav cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -92,6 +97,13 @@ export default function AdminDashboardPage() {
             </div>
           </Card>
         </div>
+
+        {/* overview Components */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+          <EarningsOverview />
+          <UpcomingPickupDates />
+        </div>
+
       </main>
     </div>
   );
