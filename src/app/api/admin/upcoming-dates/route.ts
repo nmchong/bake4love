@@ -1,18 +1,23 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { fromZonedTime, toZonedTime } from "date-fns-tz"
 
 export async function GET() {
   try {
-    const now = new Date()
+    const TIMEZONE = "America/Los_Angeles"
     
-    // get upcoming orders grouped by pickup date
+    const now = new Date()
+    const todayString = now.toLocaleDateString('en-CA', { timeZone: TIMEZONE }) // YYYY-MM-DD
+    const todayStart = fromZonedTime(todayString, TIMEZONE)
+    
+    // get upcoming orders grouped by pickup date (including today)
     const upcomingOrders = await prisma.order.findMany({
       where: {
         pickupDate: {
-          gte: now,
+          gte: todayStart,
         },
         status: {
-          not: "cancelled"
+          notIn: ["cancelled", "pending"]
         }
       },
       select: {
@@ -28,11 +33,12 @@ export async function GET() {
       }
     })
 
-    // group orders by pickup date
+    // group orders by pickup date in LA timezone
     const ordersByDate = new Map<string, { orderCount: number; totalItems: number }>()
     
     upcomingOrders.forEach(order => {
-      const dateKey = order.pickupDate.toISOString().split('T')[0] // YYYY-MM-DD format
+      const laPickupDate = toZonedTime(order.pickupDate, TIMEZONE)
+      const dateKey = laPickupDate.toLocaleDateString('en-CA', { timeZone: TIMEZONE }) // YYYY-MM-DD
       const totalItems = order.orderItems.reduce((sum, item) => sum + item.quantity, 0)
       
       if (ordersByDate.has(dateKey)) {

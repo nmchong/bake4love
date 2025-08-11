@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Calendar, Package } from "lucide-react"
 import { format } from "date-fns"
+import { fromZonedTime } from "date-fns-tz"
 
 interface UpcomingDate {
   date: string
@@ -40,10 +41,11 @@ export default function UpcomingPickupDates() {
   }, [])
 
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    const month = date.getMonth() + 1
-    const day = date.getDate()
-    const dayOfWeek = format(date, 'EEE').toLowerCase()
+    // convert the LA timezone date string to a proper date object
+    const laDate = fromZonedTime(dateString, "America/Los_Angeles")
+    const month = laDate.getMonth() + 1
+    const day = laDate.getDate()
+    const dayOfWeek = format(laDate, 'EEE').toLowerCase()
     
     return `${month}/${day} ${dayOfWeek}`
   }
