@@ -21,7 +21,7 @@ export async function isAllowedAdmin(email: string | null | undefined): Promise<
   } catch (error) {
     console.error("Failed to check admin access:", error);
     // fallback to env var
-    const allowed = process.env.NEXT_PUBLIC_ALLOWED_ADMINS?.split(",") ?? [];
+    const allowed = process.env.ALLOWED_ADMINS?.split(",") ?? [];
     return allowed.includes(email);
   }
 }
