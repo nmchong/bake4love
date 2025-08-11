@@ -28,7 +28,8 @@ export default function LoginForm() {
     const { data: userData } = await supabase.auth.getUser();
     const userEmail = userData?.user?.email;
     
-    if (!isAllowedAdmin(userEmail)) {
+    const isAdmin = await isAllowedAdmin(userEmail);
+    if (!isAdmin) {
       await supabase.auth.signOut();
       setErrorMsg("Unauthorized");
       return;
