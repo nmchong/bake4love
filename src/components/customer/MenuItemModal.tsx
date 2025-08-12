@@ -78,20 +78,22 @@ export default function MenuItemModal({ menuItem, onClose, selectedDate, disable
 
   return (
     <Dialog open={true} onOpenChange={(open) => { if (!open) onClose() }}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogTitle className="sr-only">{menuItem.name}</DialogTitle>
         
         {/* title */}
         <h2 className="text-2xl font-bold text-[#4A2F1B] mb-4">{menuItem.name}</h2>
 
         {/* image */}
-        <Image
-          src={menuItem.imageUrl || "https://placehold.co/300x180"}
-          alt={menuItem.name}
-          width={300}
-          height={180}
-          className="w-full h-36 object-cover rounded-lg mb-4"
-        />
+        <div className="w-[300px] h-[200px] mx-auto">
+          <Image
+            src={menuItem.imageUrl || "https://placehold.co/500x337"}
+            alt={menuItem.name}
+            width={500}
+            height={337}
+            className="w-full h-full object-cover rounded-lg"
+          />
+        </div>
 
         {/* description & ingredients */}
         <div className="space-y-3 mb-6">

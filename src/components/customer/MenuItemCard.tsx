@@ -43,13 +43,15 @@ export default function MenuItemCard({ item, onClick }: Props) {
   return (
     <Card onClick={onClick} className="cursor-pointer hover:shadow-lg bg-[#F3E9D7]">
       <CardContent className="p-4">
-        <Image
-          src={item.imageUrl || "https://placehold.co/300x180"}
-          alt={item.name}
-          width={300}
-          height={180}
-          className="w-full h-36 object-cover rounded-md mb-2"
-        />
+        <div className="aspect-[500/337] mb-2">
+          <Image
+            src={item.imageUrl || "https://placehold.co/500x337"}
+            alt={item.name}
+            width={500}
+            height={337}
+            className="w-full h-full object-cover rounded-md"
+          />
+        </div>
 
         <h3 className="text-lg font-bold text-[#4A2F1B]">{item.name}</h3>
         <p className="text-sm text-[#6B4C32]">
