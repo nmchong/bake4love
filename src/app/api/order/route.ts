@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma"
 import { NextResponse } from "next/server"
 import { fromZonedTime } from "date-fns-tz"
+import Stripe from "stripe"
 
 // create new order
 // POST /api/order
@@ -52,8 +53,23 @@ export async function POST(req: Request) {
       subtotalCents += price * item.quantity
     }
 
-    // calculate total (subtotal + tip, discount will be applied in Stripe)
-    const totalCents = subtotalCents + tipCents
+    // calculate discount amount if promotion code is provided
+    let discountCents = 0
+    if (promotionCodeId) {
+      // fetch the promotion code to calculate discount
+      const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
+      const promotionCode = await stripe.promotionCodes.retrieve(promotionCodeId)
+      const coupon = promotionCode.coupon
+      
+      if (coupon.percent_off) {
+        discountCents = Math.floor(subtotalCents * (coupon.percent_off / 100))
+      } else if (coupon.amount_off) {
+        discountCents = coupon.amount_off
+      }
+    }
+
+    // calculate total (subtotal - discount + tip)
+    const totalCents = subtotalCents - discountCents + tipCents
 
     // create order
     const order = await prisma.order.create({
@@ -64,7 +80,7 @@ export async function POST(req: Request) {
         pickupTime,
         notes,
         subtotalCents,
-        discountCents: 0, // discount will be applied in Stripe
+        discountCents: discountCents, // store the calculated discount amount
         tipCents,
         totalCents,
         discountCode: discountCode, // store the user-friendly code (ex. SAVE20)

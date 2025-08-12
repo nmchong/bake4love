@@ -101,6 +101,30 @@ export default function OrderSummary({
         ))}
       </ul>
 
+      {/* pricing breakdown */}
+      <div className="space-y-2 py-4 border-t border-gray-200">
+        <div className="flex justify-between">
+          <span>Subtotal:</span>
+          <span>${(subtotalCents / 100).toFixed(2)}</span>
+        </div>
+        {discountCents > 0 && (
+          <div className="flex justify-between text-green-600">
+            <span>Discount:</span>
+            <span>-${(discountCents / 100).toFixed(2)}</span>
+          </div>
+        )}
+        {tipCents > 0 && (
+          <div className="flex justify-between">
+            <span>Tip:</span>
+            <span>${(tipCents / 100).toFixed(2)}</span>
+          </div>
+        )}
+        <div className="flex justify-between font-semibold text-lg border-t pt-2">
+          <span>Total:</span>
+          <span>${(totalCents / 100).toFixed(2)}</span>
+        </div>
+      </div>
+
       {/* discount code input/display */}
       <div className="mt-4 py-4 border-t border-gray-200">
         {!displayDiscountCode ? (
@@ -133,6 +157,9 @@ export default function OrderSummary({
               <div className="flex items-center gap-2">
                 <span className="text-sm font-medium">Discount Code:</span>
                 <span className="text-sm text-green-600">{displayDiscountCode.toUpperCase()}</span>
+                <span className="text-sm text-green-600 font-semibold">
+                  (You save ${(discountCents / 100).toFixed(2)})
+                </span>
               </div>
               <Button 
                 size="sm" 
@@ -147,30 +174,6 @@ export default function OrderSummary({
             )}
           </div>
         )}
-      </div>
-
-      {/* pricing breakdown */}
-      <div className="space-y-2 py-4 border-t border-gray-200">
-        <div className="flex justify-between">
-          <span>Subtotal:</span>
-          <span>${(subtotalCents / 100).toFixed(2)}</span>
-        </div>
-        {discountCents > 0 && (
-          <div className="flex justify-between text-green-600">
-            <span>Discount:</span>
-            <span>-${(discountCents / 100).toFixed(2)}</span>
-          </div>
-        )}
-        {tipCents > 0 && (
-          <div className="flex justify-between">
-            <span>Tip:</span>
-            <span>${(tipCents / 100).toFixed(2)}</span>
-          </div>
-        )}
-        <div className="flex justify-between font-semibold text-lg border-t pt-2">
-          <span>Total:</span>
-          <span>${(totalCents / 100).toFixed(2)}</span>
-        </div>
       </div>
     </div>
   )

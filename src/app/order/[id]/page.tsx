@@ -222,27 +222,6 @@ export default function OrderPage() {
             ))}
           </ul>
 
-          {/* discount code display */}
-          {order.discountCode && (
-            <div className="mb-4 py-4 border-t border-gray-200">
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium">Discount Code:</span>
-                  <span className="text-sm text-green-600">{order.discountCode.toUpperCase()}</span>
-                </div>
-                {order.discountCents > 0 && (
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium">You saved:</span>
-                    <span className="text-sm text-green-600 font-semibold">${(order.discountCents / 100).toFixed(2)}</span>
-                  </div>
-                )}
-                {order.discountDescription && (
-                  <p className="text-sm text-green-600">{order.discountDescription}</p>
-                )}
-              </div>
-            </div>
-          )}
-
           {/* pricing breakdown */}
           <div className="space-y-2 py-4 border-t border-gray-200">
             <div className="flex justify-between">
@@ -266,6 +245,26 @@ export default function OrderPage() {
               <span>${(order.totalCents / 100).toFixed(2)}</span>
             </div>
           </div>
+
+          {/* discount code display - moved after pricing breakdown */}
+          {order.discountCode && (
+            <div className="mt-4 py-4 border-t border-gray-200">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium">Discount Code:</span>
+                  <span className="text-sm text-green-600">{order.discountCode.toUpperCase()}</span>
+                  {order.discountCents > 0 && (
+                    <span className="text-sm text-green-600 font-semibold">
+                      (You save ${(order.discountCents / 100).toFixed(2)})
+                    </span>
+                  )}
+                </div>
+                {order.discountDescription && (
+                  <p className="text-sm text-green-600">{order.discountDescription}</p>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* back to menu */}
