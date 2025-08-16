@@ -48,21 +48,33 @@ async function processOrderPayment(orderId: string, customerEmail: string, total
 
   // check if order is already fully processed (paid status means emails were already sent)
   if (order.status === "paid") {
-    console.log("Order already paid and processed - completely skipping to avoid duplicate emails")
-    return true
+    console.log("Order already paid - checking if emails were sent")
+    
+    // if this is checkout session completion, we should still send emails even if order is marked as paid
+    // bc the charge.succeeded event might have processed first and marked it as paid
+    if (isCheckoutSession) {
+      console.log("Order marked as paid but this is checkout session completion - proceeding with email sending")
+    } else {
+      console.log("Order already paid and processed - completely skipping to avoid duplicate emails")
+      return true
+    }
   }
 
   // only update order status if not already paid
-  console.log("Updating order status from", order.status, "to paid")
-  const updatedOrder = await prisma.order.update({
-    where: { id: orderId },
-    data: { 
-      status: "paid",
-      discountCents: discountCents,
-      totalCents: totalCents
-    }
-  })
-  console.log("Order marked as paid. New status:", updatedOrder.status, "New total:", updatedOrder.totalCents)
+  if (order.status !== "paid") {
+    console.log("Updating order status from", order.status, "to paid")
+    const updatedOrder = await prisma.order.update({
+      where: { id: orderId },
+      data: { 
+        status: "paid",
+        discountCents: discountCents,
+        totalCents: totalCents
+      }
+    })
+    console.log("Order marked as paid. New status:", updatedOrder.status, "New total:", updatedOrder.totalCents)
+  } else {
+    console.log("Order already marked as paid, skipping status update")
+  }
 
   // get receipt URL if available
   let receiptUrl: string | undefined
@@ -83,9 +95,9 @@ async function processOrderPayment(orderId: string, customerEmail: string, total
 
   // only send emails if this is the checkout session completion (to avoid duplicates)
   if (isCheckoutSession) {
-    console.log("This is checkout session completion - sending emails")
+    console.log("Processing checkout session - sending emails")
     
-    // send customer email
+        // send customer email
     if (customerEmail) {
       try {
         const address = process.env.PICKUP_ADDRESS || "[Address not configured]"
@@ -93,7 +105,6 @@ async function processOrderPayment(orderId: string, customerEmail: string, total
         const orderPlacedDate = formatOrderPlacedDate(order.createdAt)
         const orderUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/order/${order.id}`
         
-        console.log("Sending customer email to:", customerEmail)
         await sendOrderEmail(customerEmail, {
           address,
           dateStr,
@@ -102,9 +113,10 @@ async function processOrderPayment(orderId: string, customerEmail: string, total
           orderId: order.id,
           orderPlacedDate,
           orderUrl,
-          receiptUrl
+          receiptUrl,
+          customerNotes: order.notes || undefined
         })
-        console.log("Customer email sent via SMTP to:", customerEmail)
+        console.log("Customer email sent to:", customerEmail)
       } catch (e) {
         console.error('Failed to send customer email:', e)
       }
@@ -120,7 +132,6 @@ async function processOrderPayment(orderId: string, customerEmail: string, total
         const orderPlacedDate = formatOrderPlacedDate(order.createdAt)
         const orderUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/order/${order.id}`
         
-        console.log("Sending admin emails to:", adminEmails)
         // send to each admin individually to ensure proper formatting
         for (const adminEmail of adminEmails) {
           await sendOrderEmail(adminEmail, {
@@ -131,7 +142,8 @@ async function processOrderPayment(orderId: string, customerEmail: string, total
             orderId: order.id,
             orderPlacedDate,
             orderUrl,
-            receiptUrl
+            receiptUrl,
+            customerNotes: order.notes || undefined
           })
         }
         console.log("Admin emails sent to:", adminEmails)
@@ -141,11 +153,25 @@ async function processOrderPayment(orderId: string, customerEmail: string, total
     } catch (err) {
       console.error('Failed to send admin email:', err)
     }
+
+    // mark that emails have been sent by updating the order with a flag
+    try {
+      await prisma.order.update({
+        where: { id: orderId },
+        data: { 
+          status: "paid",
+          discountCents: discountCents,
+          totalCents: totalCents
+        }
+      })
+    } catch (e) {
+      console.error('Failed to update order after email sending:', e)
+    }
   } else {
-    console.log("This is not checkout session completion - skipping emails to avoid duplicates")
+    console.log("Skipping emails (not checkout session)")
   }
 
-  console.log("Order payment processing completed successfully for:", orderId)
+  console.log("Order payment processing completed for:", orderId)
   return true
 }
 
@@ -201,7 +227,7 @@ export async function POST(req: Request) {
       const totalCents = (session.amount_total || 0)
       console.log("Total amount from session:", totalCents)
 
-      // Get charge ID from payment intent if available
+      // get charge ID from payment intent if available
       let chargeId: string | undefined
       if (session.payment_intent) {
         try {
@@ -222,12 +248,9 @@ export async function POST(req: Request) {
         console.log("No payment_intent in session")
       }
 
-      console.log("Calling processOrderPayment with:", { orderId, customerEmail: session.customer_email, totalCents, discountCents, chargeId })
       const success = await processOrderPayment(orderId, session.customer_email || "", totalCents, discountCents, chargeId, true)
       
-      if (success) {
-        console.log("Checkout session processing completed successfully")
-      } else {
+      if (!success) {
         console.log("Checkout session processing failed")
       }
       console.log("=== END CHECKOUT.SESSION.COMPLETED ===")
@@ -266,8 +289,8 @@ export async function POST(req: Request) {
         console.log("Order not yet paid, processing charge.succeeded as fallback")
         const success = await processOrderPayment(orderId, charge.receipt_email || "", charge.amount, 0, charge.id, false)
         
-        if (success) {
-          console.log("Charge processing completed successfully")
+        if (!success) {
+          console.log("Charge processing failed")
         }
       } else {
         console.log("No orderId found in charge metadata or description")

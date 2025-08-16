@@ -258,7 +258,10 @@ export default function CheckoutPage() {
 
           {/* text above button */}
           <p className="text-sm text-[#6B4C32] text-center">
-            General pickup location is Mountain View. Exact pickup address will be revealed upon payment and sent to your email. By submitting payment, you understand that all sales are final.
+            Details, pickup location, and order receipt will be sent to your email. Please check your spam folder if you have not received an email.
+          </p>
+          <p className="text-sm text-[#6B4C32] text-center">
+            General pickup location is Mountain View. Exact pickup address will be revealed upon payment and sent to your email. If you need the location before deciding to place your order, please email {process.env.NEXT_PUBLIC_CONTACT_EMAIL}. By submitting payment, you understand that all sales are final.
           </p>
 
           {error && (

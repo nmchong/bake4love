@@ -51,8 +51,9 @@ export async function sendOrderEmail(to: string, data: {
   orderPlacedDate: string;
   orderUrl: string;
   receiptUrl?: string;
+  customerNotes?: string;
 }) {
-  const { address, dateStr, timeStr, totalCents, orderId, orderPlacedDate, orderUrl, receiptUrl } = data;
+  const { address, dateStr, timeStr, totalCents, orderId, orderPlacedDate, orderUrl, receiptUrl, customerNotes } = data;
 
   const text = `Thank you for your order!
 
@@ -61,6 +62,7 @@ Please pick up your order at ${address} on ${dateStr} between ${timeStr}.
 Order total: $${(totalCents / 100).toFixed(2)}
 Order ID: ${orderId}
 Order placed on: ${orderPlacedDate}
+Notes: ${customerNotes || '(none)'}
 
 Send any questions to ${process.env.NEXT_PUBLIC_CONTACT_EMAIL || 'EXAMPLE@GMAIL.COM'} and include your order ID, or reply directly to this email.
 
@@ -76,11 +78,12 @@ We'll see you soon!`;
     
     <p><strong>Order total:</strong> $${(totalCents / 100).toFixed(2)}<br/>
        <strong>Order ID:</strong> ${orderId}<br/>
-       <strong>Order placed on:</strong> ${orderPlacedDate}</p>
+       <strong>Order placed on:</strong> ${orderPlacedDate}<br/>
+       <strong>Notes:</strong> ${customerNotes || '(none)'}</p>
     
     <p>Send any questions to <strong>${process.env.NEXT_PUBLIC_CONTACT_EMAIL || 'EXAMPLE@GMAIL.COM'}</strong> and include your order ID, or reply directly to this email.</p>
     
-    <p>See your order: <a href="${orderUrl}">${orderUrl}</a>${receiptUrl ? `<br/>Stripe Receipt: <a href="${receiptUrl}">${receiptUrl}</a>` : ''}</p>
+    <p>See your order: <a href="${orderUrl}">${orderUrl}</a>${receiptUrl ? `<br/>Stripe receipt: <a href="${receiptUrl}">${receiptUrl}</a>` : ''}</p>
     
     <p>We'll see you soon!</p>
   </div>
