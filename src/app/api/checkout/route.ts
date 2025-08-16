@@ -1,6 +1,10 @@
 import { prisma } from "@/lib/prisma"
 import { NextResponse } from "next/server"
 import Stripe from "stripe"
+import { addMinutes, parse } from "date-fns"
+import { toZonedTime, format as tzFormat } from "date-fns-tz"
+
+export const runtime = 'nodejs'
 
 // check if required environment variables are set
 if (!process.env.STRIPE_SECRET_KEY) {
@@ -58,6 +62,20 @@ async function getOrCreateTipProduct(): Promise<string> {
   }
 }
 
+function formatPickupRangeLA(pickupDate: Date, pickupTime: string) {
+  const TIMEZONE = 'America/Los_Angeles'
+  const laDate = toZonedTime(pickupDate, TIMEZONE)
+  const dateStr = tzFormat(laDate, 'MM/dd/yyyy (EEEE)', { timeZone: TIMEZONE })
+
+  const start = parse(pickupTime, 'HH:mm', new Date())
+  const end = addMinutes(start, 30)
+  const startStr = tzFormat(start, 'h:mm', { timeZone: TIMEZONE })
+  const endStr = tzFormat(end, 'h:mm', { timeZone: TIMEZONE })
+  const ampm = tzFormat(end, 'a', { timeZone: TIMEZONE }).toLowerCase()
+
+  return { dateStr, timeStr: `${startStr}-${endStr}${ampm}` }
+}
+
 // stripe checkout session
 // POST /api/checkout { orderId, tipCents }
 export async function POST(req: Request) {
@@ -82,25 +100,25 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Order is not pending" }, { status: 400 })
     }
 
-    console.log("Order found:", order.id, "Items:", order.orderItems.length)
+    console.log("Order found:", order.id, "Customer email:", order.customerEmail)
 
     // create products and line items
-    const line_items = []
-    const productIds = []
+    const line_items: Stripe.Checkout.SessionCreateParams.LineItem[] = []
+    const productIds: string[] = []
     
     for (const item of order.orderItems) {
       const productId = await getOrCreateProduct(item.menuItem, item.variant)
       productIds.push(productId)
       
       line_items.push({
-      price_data: {
-        currency: "usd",
+        price_data: {
+          currency: "usd",
           product: productId,
-        unit_amount: item.variant === "half"
-          ? item.menuItem.halfPrice ?? 0
-          : item.menuItem.price,
-      },
-      quantity: item.quantity,
+          unit_amount: item.variant === "half"
+            ? item.menuItem.halfPrice ?? 0
+            : item.menuItem.price,
+        },
+        quantity: item.quantity,
       })
     }
 
@@ -119,6 +137,16 @@ export async function POST(req: Request) {
 
     console.log("Line items created:", line_items.length)
 
+    const address = process.env.PICKUP_ADDRESS || "[Address not configured]"
+    const { dateStr, timeStr } = formatPickupRangeLA(order.pickupDate as unknown as Date, order.pickupTime)
+    const orderUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/order/${order.id}`
+    const note = `Please pick up your order at ${address} on ${dateStr} between ${timeStr}.
+See your order at ${orderUrl}.
+Send any questions to ${process.env.NEXT_PUBLIC_CONTACT_EMAIL || 'EXAMPLE@GMAIL.COM'} and include your order ID: ${order.id}`
+
+    console.log("Creating checkout session with receipt_email:", order.customerEmail)
+    console.log("Note for receipt:", note)
+
     // create stripe checkout session
     const sessionConfig: Stripe.Checkout.SessionCreateParams = {
       payment_method_types: ["card"],
@@ -130,7 +158,13 @@ export async function POST(req: Request) {
       metadata: {
         orderId: order.id,
       },
+      payment_intent_data: {
+        description: note,
+        receipt_email: order.customerEmail,
+      },
     }
+
+    console.log("Session config payment_intent_data:", sessionConfig.payment_intent_data)
 
     // add discount if discount code exists, but only for menu items (not tip)
     if (order.discountCode && order.promotionCodeId) {
@@ -164,6 +198,7 @@ export async function POST(req: Request) {
     const session = await stripe.checkout.sessions.create(sessionConfig)
 
     console.log("Stripe session created:", session.id)
+    console.log("Session payment_intent:", session.payment_intent)
 
     return NextResponse.json({ url: session.url })
   } catch (error) {

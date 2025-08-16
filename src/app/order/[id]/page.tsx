@@ -50,6 +50,7 @@ export default function OrderPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [processingCancel, setProcessingCancel] = useState(false)
+  const [waitingForPayment, setWaitingForPayment] = useState(false)
 
   const orderId = params.id as string
   const isSuccess = searchParams.get("success") === "1"
@@ -59,6 +60,7 @@ export default function OrderPage() {
     // get order (using id) from api
     const fetchOrder = async () => {
       try {
+        console.log("Fetching order:", orderId)
         const res = await fetch(`/api/order/${orderId}`)
         if (!res.ok) {
           if (res.status === 404) {
@@ -70,8 +72,16 @@ export default function OrderPage() {
           return
         }
         const data = await res.json()
+        console.log("Order fetched:", data.id, "Status:", data.status)
         setOrder(data)
-      } catch {
+        
+        // if this is a successful payment but order is not yet paid, start polling
+        if (isSuccess && data.status !== "paid") {
+          console.log("Payment successful but order not yet paid, starting polling...")
+          setWaitingForPayment(true)
+        }
+      } catch (err) {
+        console.error("Error fetching order:", err)
         setError("Failed to load order")
       } finally {
         setLoading(false)
@@ -81,7 +91,45 @@ export default function OrderPage() {
     if (orderId) {
       fetchOrder()
     }
-  }, [orderId])
+  }, [orderId, isSuccess])
+
+  // poll for order status update when waiting for payment confirmation
+  useEffect(() => {
+    if (!waitingForPayment || !orderId) return
+
+    const pollInterval = setInterval(async () => {
+      try {
+        console.log("Polling for order status update...")
+        const res = await fetch(`/api/order/${orderId}`)
+        if (res.ok) {
+          const data = await res.json()
+          console.log("Poll result - Order status:", data.status)
+          
+          if (data.status === "paid") {
+            console.log("Order confirmed as paid, stopping polling")
+            setOrder(data)
+            setWaitingForPayment(false)
+            clearInterval(pollInterval)
+          }
+        }
+      } catch (err) {
+        console.error("Error polling order:", err)
+      }
+    }, 2000) // poll every 2 seconds
+
+    // stop polling after 30 seconds (15 attempts)
+    const timeout = setTimeout(() => {
+      console.log("Polling timeout reached")
+      setWaitingForPayment(false)
+      clearInterval(pollInterval)
+      setError("Payment confirmation is taking longer than expected. Please check your email for confirmation or contact support.")
+    }, 30000)
+
+    return () => {
+      clearInterval(pollInterval)
+      clearTimeout(timeout)
+    }
+  }, [waitingForPayment, orderId])
 
   // handle order cancellation (cancel when on Stripe checkout page) - restore cart & delete order
   useEffect(() => {
@@ -127,6 +175,20 @@ export default function OrderPage() {
     )
   }
 
+  if (waitingForPayment) {
+    return (
+      <div className="max-w-2xl mx-auto p-6">
+        <div className="text-center text-[#6B4C32] mb-4">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#A4551E] mx-auto mb-4"></div>
+          Processing your payment...
+        </div>
+        <div className="text-sm text-[#6B4C32] text-center">
+          This may take a few moments. Please wait while we confirm your payment.
+        </div>
+      </div>
+    )
+  }
+
   if (error || !order) {
     return (
       <div className="max-w-2xl mx-auto p-6">
@@ -163,6 +225,9 @@ export default function OrderPage() {
         {isSuccess && (
           <div className="mb-2 px-4 py-4 rounded bg-green-50 border border-green-200 text-green-800 text-center w-full max-w-md">
             <span className="font-semibold">Payment Successful!</span><br />Your order has been confirmed. We&apos;ll see you soon!
+            <div className="mt-3 text-sm">
+              <span className="font-bold text-lg">⚠️ Please check your spam folder if you have not received a confirmation email.</span>
+            </div>
           </div>
         )}
         {isCanceled && (
@@ -182,6 +247,9 @@ export default function OrderPage() {
         </p>
         <p className="text-[#4A2F1B]">
           You will receive a confirmation email.
+        </p>
+        <p className="text-[#4A2F1B] mt-2">
+          For any questions, please email <span className="font-semibold">{process.env.NEXT_PUBLIC_CONTACT_EMAIL || 'EXAMPLE@GMAIL.COM'}</span>.
         </p>
       </div>
 

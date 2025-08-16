@@ -86,7 +86,7 @@ export default function HeroSection() {
                     <p className="text-sm text-[#6B4C32]">
                       Contact the baker directly for inquiries, feedback, or to report a website error:
                     </p>
-                    <p className="text-sm font-semibold text-[#A4551E]">EMAIL@gmail.com</p>
+                    <p className="text-sm font-semibold text-[#A4551E]">{process.env.NEXT_PUBLIC_CONTACT_EMAIL || 'EMAIL@gmail.com'}</p>
                   </div>
                 </div>
               )}
