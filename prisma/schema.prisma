@@ -63,3 +63,10 @@ model Availability {
   date       DateTime   @unique
   timeSlots  String[]
 }
+
+model BrandSettings {
+  id           String   @id @default(uuid())
+  bannerImageUrl String?
+  profileImageUrl String?
+  updatedAt    DateTime @updatedAt
+}

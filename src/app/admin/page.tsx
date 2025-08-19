@@ -1,5 +1,6 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import AdminSidebar from "@/components/admin/shared/AdminSidebar"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -7,8 +8,52 @@ import Link from "next/link"
 import { ShoppingCart, Calendar, UtensilsCrossed, Tag } from "lucide-react"
 import EarningsOverview from "@/components/admin/dashboard/EarningsOverview"
 import UpcomingPickupDates from "@/components/admin/dashboard/UpcomingPickupDates"
+import ImageManager from "@/components/admin/dashboard/ImageManager"
 
 export default function AdminDashboardPage() {
+  const [brandImages, setBrandImages] = useState({
+    bannerImageUrl: "",
+    profileImageUrl: ""
+  })
+
+
+  useEffect(() => {
+    // fetch current brand images
+    fetch('/api/admin/brand-images')
+      .then(res => res.json())
+      .then(data => {
+        console.log('Admin brand images API response:', data)
+        setBrandImages({
+          bannerImageUrl: data.bannerImageUrl || "",
+          profileImageUrl: data.profileImageUrl || ""
+        })
+      })
+      .catch(error => console.error('Failed to fetch brand images:', error))
+  }, [])
+
+  const updateBrandImage = async (type: 'banner' | 'profile', url: string) => {
+    try {
+      const response = await fetch('/api/admin/brand-images', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          bannerImageUrl: type === 'banner' ? url : brandImages.bannerImageUrl,
+          profileImageUrl: type === 'profile' ? url : brandImages.profileImageUrl
+        })
+      })
+      
+      if (response.ok) {
+        setBrandImages(prev => ({
+          ...prev,
+          [type === 'banner' ? 'bannerImageUrl' : 'profileImageUrl']: url
+        }))
+      }
+    } catch (error) {
+      console.error('Failed to update brand image:', error)
+    }
+  }
+
+
   return (
     <div className="flex min-h-screen bg-[#F3E9D7]">
       <AdminSidebar />
@@ -96,6 +141,23 @@ export default function AdminDashboardPage() {
               </Link>
             </div>
           </Card>
+        </div>
+
+        {/* image management (banner and profile) */}
+        <div className="mt-8">
+          <h2 className="text-xl font-bold mb-4 text-[#4A2F1B]">Brand Images</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <ImageManager 
+              type="banner" 
+              currentImageUrl={brandImages.bannerImageUrl}
+              onSave={(url) => updateBrandImage('banner', url)}
+            />
+            <ImageManager 
+              type="profile" 
+              currentImageUrl={brandImages.profileImageUrl}
+              onSave={(url) => updateBrandImage('profile', url)}
+            />
+          </div>
         </div>
 
         {/* overview Components */}

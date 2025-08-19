@@ -3,14 +3,33 @@
 import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { ChevronDown, Mail, MapPin, HelpCircle } from "lucide-react"
+import Image from "next/image"
 
 export default function HeroSection() {
   const [howToOrderOpen, setHowToOrderOpen] = useState(false)
   const [locationOpen, setLocationOpen] = useState(false)
   const [contactOpen, setContactOpen] = useState(false)
+  const [brandImages, setBrandImages] = useState({
+    bannerImageUrl: "",
+    profileImageUrl: ""
+  })
   const dropdownRef = useRef<HTMLDivElement>(null)
   const locationRef = useRef<HTMLDivElement>(null)
   const contactRef = useRef<HTMLDivElement>(null)
+
+  // fetch brand images
+  useEffect(() => {
+    fetch('/api/brand-images')
+      .then(res => res.json())
+      .then(data => {
+        console.log('Brand images API response:', data)
+        setBrandImages({
+          bannerImageUrl: data.bannerImageUrl || "",
+          profileImageUrl: data.profileImageUrl || ""
+        })
+      })
+      .catch(error => console.error('Failed to fetch brand images:', error))
+  }, [])
 
   // close dropdowns when clicking outside
   useEffect(() => {
@@ -38,8 +57,20 @@ export default function HeroSection() {
   return (
     <section className="w-full py-12 bg-[#F3E9D7] border-b border-[#E5DED6] shadow-[0_4px_12px_-8px_#FAF7ED]">
       {/* banner image */}
-      <div className="w-full h-48 md:h-48 bg-[#FAF7ED] flex items-center justify-center mb-6">
-        <span className="text-[#6B4C32] text-xl">[ Banner Image Placeholder ]</span>
+      <div className="w-full h-48 md:h-48 bg-[#FAF7ED] mb-6 overflow-hidden relative">
+        {brandImages.bannerImageUrl ? (
+          <Image
+            src={brandImages.bannerImageUrl}
+            alt="Banner"
+            fill
+            className="object-cover"
+            unoptimized
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center">
+            <span className="text-[#6B4C32] text-xl">[ Banner Image Placeholder ]</span>
+          </div>
+        )}
       </div>
       
       <div className="max-w-6xl mx-auto px-4">
@@ -47,10 +78,22 @@ export default function HeroSection() {
           
           {/* chef image */}
           <div className="flex-shrink-0">
-            <div className="w-32 h-32 md:w-40 md:h-40 rounded-full bg-[#FAF7ED] border-4 border-[#E5DED6] flex items-center justify-center shadow-lg">
-              <span className="text-[#6B4C32] text-sm md:text-base text-center px-2">
-                Chef Image Placeholder
-              </span>
+            <div className="w-32 h-32 md:w-40 md:h-40 rounded-full bg-[#FAF7ED] border-4 border-[#E5DED6] overflow-hidden shadow-lg relative">
+              {brandImages.profileImageUrl ? (
+                <Image
+                  src={brandImages.profileImageUrl}
+                  alt="Chef"
+                  fill
+                  className="object-cover"
+                  unoptimized
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                  <span className="text-[#6B4C32] text-sm md:text-base text-center px-2">
+                    Chef Image Placeholder
+                  </span>
+                </div>
+              )}
             </div>
           </div>
 
