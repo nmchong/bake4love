@@ -12,11 +12,11 @@ export async function POST(req: NextRequest) {
     }
 
     // query the admins table to check if email exists
-    const admin = await prisma.$queryRaw<[{ email: string }]>`
-      SELECT email FROM admins WHERE email = ${email}
-    `
+    const admin = await prisma.admin.findUnique({
+      where: { email }
+    })
     
-    const isAdmin = admin.length > 0
+    const isAdmin = !!admin
     
     return NextResponse.json({ isAdmin })
   } catch (error) {
