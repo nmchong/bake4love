@@ -44,7 +44,7 @@ export default function MenuItemList({ menuItems, onEdit, onDelete, isLoading }:
             <CardContent className="px-6">
               <div className="flex items-center gap-8">
                 {/* image */}
-                <div className="relative w-32 h-32 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+                <div className="relative w-40 h-27 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
                   {item.imageUrl ? (
                     <Image
                       src={item.imageUrl}
