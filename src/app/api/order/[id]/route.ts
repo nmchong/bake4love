@@ -92,6 +92,14 @@ export async function DELETE(
       return NextResponse.json({ success: true, message: "Order not found or already deleted" })
     }
 
+    // prevent cancelling paid orders
+    if (order.status === 'paid') {
+      return NextResponse.json({ 
+        error: "Cannot cancel paid orders", 
+        message: "This order has already been paid and cannot be cancelled" 
+      }, { status: 400 })
+    }
+
     // del order & all order items
     await prisma.order.delete({
       where: { id }
