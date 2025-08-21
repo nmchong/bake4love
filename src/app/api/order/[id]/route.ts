@@ -44,6 +44,7 @@ export async function GET(
             variant: true,
             menuItem: {
               select: {
+                id: true,
                 name: true,
                 price: true,
                 halfPrice: true,
