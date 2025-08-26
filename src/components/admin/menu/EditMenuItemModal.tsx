@@ -96,7 +96,9 @@ export default function EditMenuItemModal({ open, onOpenChange, menuItem, onSave
 
     setUploading(true)
     try {
-      const filePath = `menu-images/${menuItem.id}.${ext}`
+      // add timestamp to ensure unique file names and avoid conflicts
+      const timestamp = Date.now()
+      const filePath = `menu-images/${menuItem.id}_${timestamp}.${ext}`
       const { error: uploadError } = await supabase.storage
         .from('menu-images')
         .upload(filePath, file, { upsert: true, contentType: file.type })
@@ -107,9 +109,25 @@ export default function EditMenuItemModal({ open, onOpenChange, menuItem, onSave
       }
 
       const { data } = supabase.storage.from('menu-images').getPublicUrl(filePath)
-      handleChange('imageUrl', data.publicUrl)
+      
+      // clean up old images for this menu item - prevent storage bloat
+      if (form.imageUrl && form.imageUrl.includes('menu-images/')) {
+        try {
+          const oldPath = form.imageUrl.split('/').pop()?.split('?')[0]
+          if (oldPath) {
+            await supabase.storage.from('menu-images').remove([oldPath])
+          }
+        } catch (cleanupError) {
+          console.warn('Failed to cleanup old image:', cleanupError)
+        }
+      }
+      
+      // update form state w/ the new image URL
+      setForm(prev => ({ ...prev, imageUrl: data.publicUrl }))
+      return data.publicUrl // return the URL for immediate use
     } catch {
       alert('Failed to upload image')
+      return null
     } finally {
       setUploading(false)
     }
@@ -118,12 +136,23 @@ export default function EditMenuItemModal({ open, onOpenChange, menuItem, onSave
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
+    let finalImageUrl = form.imageUrl
+    
+    // if there's a new image file, upload it first and wait for completion
     if (imageFile) {
-      await handleImageUpload(imageFile)
+      const uploadedUrl = await handleImageUpload(imageFile)
+      if (uploadedUrl) {
+        finalImageUrl = uploadedUrl
+      } else {
+        // upload failed, don't proceed with save
+        return
+      }
     }
     
+    // now call onSave with the final form data including the updated image URL
     onSave({ 
       ...form, 
+      imageUrl: finalImageUrl,
       ingredients: ingredientsText.split("\n").map(s => s.trim()).filter(Boolean) 
     })
     setDirty(false)
@@ -148,7 +177,7 @@ export default function EditMenuItemModal({ open, onOpenChange, menuItem, onSave
   const removeImage = () => {
     setImageFile(null)
     setImagePreview(null)
-    handleChange('imageUrl', '')
+    setForm(prev => ({ ...prev, imageUrl: '' }))
   }
 
 
@@ -156,7 +185,10 @@ export default function EditMenuItemModal({ open, onOpenChange, menuItem, onSave
   return (
     <>
       <Dialog.Dialog open={open} onOpenChange={(isOpen) => {
-        if (!isOpen && dirty) {
+        if (!isOpen && uploading) {
+          // don't allow closing while uploading
+          return
+        } else if (!isOpen && dirty) {
           setShowConfirm(true)
         } else if (!isOpen) {
           onOpenChange(false)
@@ -229,16 +261,17 @@ export default function EditMenuItemModal({ open, onOpenChange, menuItem, onSave
                         <label className="flex items-center gap-2 px-4 py-2 bg-[#A4551E] text-white rounded-lg cursor-pointer hover:bg-[#843C12] transition-colors">
                           <Upload className="w-4 h-4" />
                           {uploading ? 'Uploading...' : 'Upload Image'}
-                          <input
-                            type="file"
-                            accept=".jpg,.jpeg,.png"
-                            onChange={e => {
-                              const file = e.target.files?.[0] || null
-                              setImageFile(file)
-                            }}
-                            className="hidden"
-                            disabled={uploading}
-                          />
+                                                  <input
+                          type="file"
+                          accept=".jpg,.jpeg,.png"
+                          onChange={e => {
+                            const file = e.target.files?.[0] || null
+                            setImageFile(file)
+                          }}
+                          className="hidden"
+                          disabled={uploading}
+                          key={imageFile ? 'has-file' : 'no-file'} // force re-render to allow re-uploading same file
+                        />
                         </label>
                         {(imagePreview || form.imageUrl) && (
                           <Button
@@ -395,6 +428,7 @@ export default function EditMenuItemModal({ open, onOpenChange, menuItem, onSave
                 type="button" 
                 variant="outline" 
                 onClick={handleCancel}
+                disabled={uploading}
                 className="px-6"
               >
                 Cancel
