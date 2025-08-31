@@ -85,9 +85,9 @@ export default function MenuItemModal({ menuItem, onClose, selectedDate, disable
         <h2 className="text-2xl font-bold text-[#4A2F1B] mb-4">{menuItem.name}</h2>
 
         {/* image */}
-        <div className="w-[300px] h-[200px] mx-auto">
+        <div className="w-[300px] h-[2git00px] mx-auto">
           <Image
-            src={menuItem.imageUrl || "https://via.placeholder.com/500x337/F3E9D7/6B4C32?text=No+Image"}
+            src={menuItem.imageUrl || "https://dummyimage.com/500x337/F3E9D7/6B4C32&text=No+Image"}
             alt={menuItem.name}
             width={500}
             height={337}
