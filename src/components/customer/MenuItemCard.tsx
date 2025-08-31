@@ -45,7 +45,7 @@ export default function MenuItemCard({ item, onClick }: Props) {
       <CardContent className="p-4">
         <div className="aspect-[500/337] mb-2">
           <Image
-            src={item.imageUrl || "https://placehold.co/500x337"}
+            src={item.imageUrl || "https://via.placeholder.com/500x337/F3E9D7/6B4C32?text=No+Image"}
             alt={item.name}
             width={500}
             height={337}

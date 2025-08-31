@@ -87,7 +87,7 @@ export default function MenuItemModal({ menuItem, onClose, selectedDate, disable
         {/* image */}
         <div className="w-[300px] h-[200px] mx-auto">
           <Image
-            src={menuItem.imageUrl || "https://placehold.co/500x337"}
+            src={menuItem.imageUrl || "https://via.placeholder.com/500x337/F3E9D7/6B4C32?text=No+Image"}
             alt={menuItem.name}
             width={500}
             height={337}
