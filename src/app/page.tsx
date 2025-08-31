@@ -29,6 +29,7 @@ export default function HomePage() {
   // fetch availability for the next 14 days
   useEffect(() => {
     const fetchAvailability = async () => {
+      console.log('Customer dashboard: Starting availability fetch')
       const today = new Date();
       const startDate = new Date(today);
       startDate.setDate(today.getDate() + 4); // start 4 days from now
@@ -36,14 +37,20 @@ export default function HomePage() {
       const endDate = new Date(startDate);
       endDate.setDate(startDate.getDate() + 13); // 14 days from new start
       const end = format(endDate, 'yyyy-MM-dd');
+      
+      console.log('Customer dashboard: Fetching availability for date range:', { start, end })
+      
       const res = await fetch(`/api/availability-range?start=${start}&end=${end}`);
       const data = await res.json();
+      console.log('Customer dashboard: Raw availability response:', data)
+      
       // data is an array of { date, timeSlots }
       // treat as available if timeSlots is not null
       const result: { [key: string]: boolean } = {};
       for (const entry of data) {
         result[entry.date] = entry.timeSlots !== null;
       }
+      console.log('Customer dashboard: Processed availability map:', result)
       setAvailableDates(result);
     };
     fetchAvailability();

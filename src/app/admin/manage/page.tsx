@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useState, useCallback } from "react"
-import { toZonedTime, format as formatTz, fromZonedTime } from "date-fns-tz"
 import AdminSidebar from "@/components/admin/shared/AdminSidebar"
 import AvailabilityCalendar from "@/components/admin/manage/AvailabilityCalendar"
 import DateDetailsPane from "@/components/admin/manage/DateDetailsPane"
@@ -20,7 +19,6 @@ interface Availability {
   timeSlots: string[]
 }
 
-const TIMEZONE = "America/Los_Angeles"
 const DAY_NAMES = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 
 export default function AdminManagePage() {
@@ -61,29 +59,38 @@ export default function AdminManagePage() {
     return days;
   }
 
-  // format date as yyyy-mm-dd in local timezone
+  // format date as yyyy-mm-dd - simple formatting without timezone conversion
   function formatDateLocal(date: Date) {
-    return formatTz(toZonedTime(date, TIMEZONE), 'yyyy-MM-dd', { timeZone: TIMEZONE })
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    return `${year}-${month}-${day}`
   }
 
   // fetch all data for the current calendar grid
   const fetchCalendarData = useCallback(async () => {
+    console.log('🔄 Admin dashboard: Starting fetchCalendarData')
+    
     // 1. fetch menu items
     const menuRes = await fetch("/api/admin/menu")
     if (!menuRes.ok) throw new Error("Failed to fetch menu items")
     const menuData = await menuRes.json()
     setMenuItems(menuData)
     setMenuItemsDraft(menuData)
+    console.log('🍽️ Menu items fetched:', menuData.length)
 
     // 2. fetch availability for the calendar grid using the new range API
     const calendarDates = getCalendarDates();
     const dateStrs = calendarDates.map(d => formatDateLocal(d));
     const start = dateStrs[0];
     const end = dateStrs[dateStrs.length - 1];
+    console.log('📅 Admin dashboard: Fetching availability for date range:', { start, end, dateStrs })
+    
     const availRes = await fetch(`/api/availability-range?start=${start}&end=${end}`);
     if (!availRes.ok) throw new Error("Failed to fetch availability range");
     const availArray = await availRes.json();
-    // Map to { [date]: { timeSlots } | undefined }
+
+    // map to { [date]: { timeSlots } | undefined }
     const availMap = Object.fromEntries(
       availArray.map((a: { date: string; timeSlots: string[] | null }) => [a.date, a.timeSlots ? { timeSlots: a.timeSlots } : undefined])
     );
@@ -98,6 +105,7 @@ export default function AdminManagePage() {
       ordersArray.map((o: { date: string; orderCount: number }) => [o.date, o.orderCount])
     );
     setOrdersByDate(ordersMap);
+    
   }, [])
 
   useEffect(() => {
@@ -155,18 +163,31 @@ export default function AdminManagePage() {
     try {
       // save availability for selectedDate
       const key = formatDateLocal(selectedDate)
-      // convert to UTC midnight for the business timezone
-      const utcDate = fromZonedTime(key, TIMEZONE)
+      console.log('Admin dashboard: Saving availability for date:', {
+        selectedDate: selectedDate.toISOString(),
+        formattedKey: key,
+        isAvailable: availabilityDraft.isAvailable,
+        timeSlots: availabilityDraft.selectedTimeSlots
+      })
+      
+      // send the date string directly - no conversion needed
+      console.log('Admin dashboard: Using date string directly:', key)
+      
       const res = await fetch("/api/availability", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ date: utcDate.toISOString(), timeSlots: availabilityDraft.isAvailable ? availabilityDraft.selectedTimeSlots : [] })
+        body: JSON.stringify({ date: key, timeSlots: availabilityDraft.isAvailable ? availabilityDraft.selectedTimeSlots : [] })
       })
       if (!res.ok) throw new Error("Failed to save availability")
+      
+      console.log('Admin dashboard: Availability saved successfully, now refetching data')
+      
       // refetch availability for the month
       await fetchCalendarData()
       setAvailabilityDirty(false)
-    } catch {
+      console.log('Admin dashboard: Data refetched after save')
+    } catch (error) {
+      console.error('Admin dashboard: Error saving availability:', error)
       setAvailabilityError("Failed to save availability")
     } finally {
       setAvailabilitySaving(false)

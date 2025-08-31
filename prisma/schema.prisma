@@ -60,7 +60,7 @@ model OrderItem {
 
 model Availability {
   id         String     @id @default(uuid())
-  date       DateTime   @unique
+  date       String     @unique
   timeSlots  String[]
 }
 
