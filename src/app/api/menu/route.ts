@@ -1,6 +1,5 @@
 import { prisma } from '@/lib/prisma'
 import { NextResponse } from 'next/server'
-import { fromZonedTime, toZonedTime } from 'date-fns-tz'
 
 // return list of menu items for given date
 // GET /api/menu?date=YYYY-MM-DD
@@ -19,13 +18,13 @@ export async function GET(req: Request) {
     return NextResponse.json(items)
   }
 
-  const TIMEZONE = "America/Los_Angeles"
-  const laDate = fromZonedTime(dateParam, TIMEZONE)
-  const dayOfWeek = toZonedTime(laDate, TIMEZONE).toLocaleDateString("en-US", { weekday: "long", timeZone: TIMEZONE })
+  // get the day of week from the date string directly
+  const date = new Date(dateParam + 'T00:00:00')
+  const dayOfWeek = date.toLocaleDateString("en-US", { weekday: "long" })
 
-  // check if chef is available for this LA-local day
+  // check if chef is available for this date (using string comparison)
   const availability = await prisma.availability.findFirst({
-    where: { date: laDate }
+    where: { date: dateParam }
   })
   if (!availability) {
     return NextResponse.json([])
