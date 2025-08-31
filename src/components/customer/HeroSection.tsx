@@ -19,16 +19,32 @@ export default function HeroSection() {
 
   // fetch brand images
   useEffect(() => {
-    fetch('/api/brand-images')
-      .then(res => res.json())
-      .then(data => {
-        console.log('Brand images API response:', data)
+    const fetchBrandImages = async (retryCount = 0) => {
+      try {
+        const response = await fetch('/api/brand-images')
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`)
+        }
+        const data = await response.json()
         setBrandImages({
           bannerImageUrl: data.bannerImageUrl || "",
           profileImageUrl: data.profileImageUrl || ""
         })
-      })
-      .catch(error => console.error('Failed to fetch brand images:', error))
+      } catch (error) {
+        console.error('Failed to fetch brand images:', error)
+        
+        // retry up to 2 times with exponential backoff
+        if (retryCount < 2) {
+          const delay = Math.pow(2, retryCount) * 1000 // 1s, 2s
+          console.log(`Retrying in ${delay}ms... (attempt ${retryCount + 1})`)
+          setTimeout(() => fetchBrandImages(retryCount + 1), delay)
+        } else {
+          console.error('Max retries reached for brand images')
+        }
+      }
+    }
+
+    fetchBrandImages()
   }, [])
 
   // close dropdowns when clicking outside
@@ -65,6 +81,7 @@ export default function HeroSection() {
             fill
             className="object-cover"
             unoptimized
+            priority
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">

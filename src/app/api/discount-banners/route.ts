@@ -30,7 +30,15 @@ export async function GET() {
 
     return NextResponse.json({ banners })
   } catch (error) {
-    console.error("Error fetching discount banners:", error)
+    
+    // return error message
+    if (error instanceof Error) {
+      return NextResponse.json({ 
+        error: "Failed to fetch discount banners", 
+        details: error.message 
+      }, { status: 500 })
+    }
+    
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 } 
