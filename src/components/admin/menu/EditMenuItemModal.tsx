@@ -86,8 +86,6 @@ export default function EditMenuItemModal({ open, onOpenChange, menuItem, onSave
   }
 
   const handleImageUpload = async (file: File) => {
-    if (!menuItem?.id) return
-
     const ext = file.name.split('.').pop()?.toLowerCase()
     if (!['jpg', 'jpeg', 'png'].includes(ext || '')) {
       alert('Only JPG and PNG files are allowed.')
@@ -98,7 +96,10 @@ export default function EditMenuItemModal({ open, onOpenChange, menuItem, onSave
     try {
       // add timestamp to ensure unique file names and avoid conflicts
       const timestamp = Date.now()
-      const filePath = `menu-images/${menuItem.id}_${timestamp}.${ext}`
+      // for new items, use a temporary ID, for existing items use the actual ID
+      const itemId = menuItem?.id || `temp_${timestamp}`
+      const filePath = `menu-images/${itemId}_${timestamp}.${ext}`
+      
       const { error: uploadError } = await supabase.storage
         .from('menu-images')
         .upload(filePath, file, { upsert: true, contentType: file.type })
