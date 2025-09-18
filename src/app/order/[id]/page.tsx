@@ -226,7 +226,7 @@ export default function OrderPage() {
           <div className="mb-2 px-4 py-4 rounded bg-green-50 border border-green-200 text-green-800 text-center w-full max-w-md">
             <span className="font-semibold">Payment Successful!</span><br />Your order has been confirmed. We&apos;ll see you soon!
             <div className="mt-3 text-sm">
-              <span className="font-bold text-lg">⚠️ Please check your spam folder if you do not receive a confirmation email.</span>
+              <span className="font-bold text-lg">⚠️ Please check your spam folder if you do not receive a confirmation email. You will receive a Stripe receipt email and an email from Bake4Love.</span>
             </div>
           </div>
         )}
