@@ -52,16 +52,23 @@ export async function sendOrderEmail(to: string, data: {
   orderUrl: string;
   receiptUrl?: string;
   customerNotes?: string;
+  customerName: string;
+  customerEmail: string;
 }) {
-  const { address, dateStr, timeStr, totalCents, orderId, orderPlacedDate, orderUrl, receiptUrl, customerNotes } = data;
+  const { address, dateStr, timeStr, totalCents, orderId, orderPlacedDate, orderUrl, receiptUrl, customerNotes, customerName, customerEmail } = data;
 
   const text = `Thank you for your order!
 
 Please pick up your order at ${address} on ${dateStr} between ${timeStr}.
 
+Name: ${customerName}
+Email: ${customerEmail}
+Pickup date: ${dateStr}
+Pickup time: ${timeStr}
+
 Order total: $${(totalCents / 100).toFixed(2)}
-Order ID: ${orderId}
 Order placed on: ${orderPlacedDate}
+Order ID: ${orderId}
 Notes: ${customerNotes || '(none)'}
 
 Send any questions to ${process.env.NEXT_PUBLIC_CONTACT_EMAIL || 'EXAMPLE@GMAIL.COM'} and include your order ID, or reply directly to this email.
@@ -76,9 +83,14 @@ We'll see you soon!`;
     
     <p>Please pick up your order at <strong>${address}</strong> on <strong>${dateStr}</strong> between <strong>${timeStr}</strong>.</p>
     
+    <p><strong>Name:</strong> ${customerName}<br/>
+       <strong>Email:</strong> ${customerEmail}<br/>
+       <strong>Pickup date:</strong> ${dateStr}<br/>
+       <strong>Pickup time:</strong> ${timeStr}</p>
+    
     <p><strong>Order total:</strong> $${(totalCents / 100).toFixed(2)}<br/>
-       <strong>Order ID:</strong> ${orderId}<br/>
        <strong>Order placed on:</strong> ${orderPlacedDate}<br/>
+       <strong>Order ID:</strong> ${orderId}<br/>
        <strong>Notes:</strong> ${customerNotes || '(none)'}</p>
     
     <p>Send any questions to <strong>${process.env.NEXT_PUBLIC_CONTACT_EMAIL || 'EXAMPLE@GMAIL.COM'}</strong> and include your order ID, or reply directly to this email.</p>

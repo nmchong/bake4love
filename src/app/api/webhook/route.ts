@@ -114,7 +114,9 @@ async function processOrderPayment(orderId: string, customerEmail: string, total
           orderPlacedDate,
           orderUrl,
           receiptUrl,
-          customerNotes: order.notes || undefined
+          customerNotes: order.notes || undefined,
+          customerName: order.customerName,
+          customerEmail: order.customerEmail
         })
         console.log("Customer email sent to:", customerEmail)
       } catch (e) {
@@ -143,7 +145,9 @@ async function processOrderPayment(orderId: string, customerEmail: string, total
             orderPlacedDate,
             orderUrl,
             receiptUrl,
-            customerNotes: order.notes || undefined
+            customerNotes: order.notes || undefined,
+            customerName: order.customerName,
+            customerEmail: order.customerEmail
           })
         }
         console.log("Admin emails sent to:", adminEmails)
