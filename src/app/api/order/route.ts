@@ -71,6 +71,9 @@ export async function POST(req: Request) {
     // calculate total (subtotal - discount + tip)
     const totalCents = subtotalCents - discountCents + tipCents
 
+    // Store the current time - it will be displayed in PST by the admin components
+    const now = new Date()
+
     // create order
     const order = await prisma.order.create({
       data: {
@@ -87,6 +90,7 @@ export async function POST(req: Request) {
         promotionCodeId: promotionCodeId, // store the Stripe promotion code ID
         discountDescription: discountDescription, // store the discount description (ex. $5.00 off when you spend $30.00)
         status: "pending",
+        createdAt: now, // store current time - will be displayed in PST
         orderItems: {
           create: cart.map((item) => ({
             menuItem: { connect: { id: item.menuItemId } },

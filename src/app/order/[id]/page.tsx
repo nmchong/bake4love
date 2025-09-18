@@ -5,7 +5,7 @@ import { useParams, useSearchParams, useRouter } from "next/navigation"
 import { format, parseISO, addMinutes, parse, format as formatDate } from "date-fns"
 import { Button } from "@/components/ui/button"
 import { useCart } from "@/components/customer/CartContext"
-import { toZonedTime, fromZonedTime } from "date-fns-tz"
+import { toZonedTime, fromZonedTime, format as formatTz } from "date-fns-tz"
 import Image from "next/image"
 
 
@@ -260,7 +260,7 @@ export default function OrderPage() {
           <div>
             <div className="text-lg font-bold text-[#4A2F1B] mb-1">Order <span className="text-[#A4551E]">#{order.id.slice(0, 8)}</span></div>
             <div className="text-sm text-[#6B4C32]">Status: <span className="font-semibold capitalize text-[#A4551E]">{order.status}</span></div>
-            <div className="text-sm text-[#6B4C32]">Placed: {format(parseISO(order.createdAt), 'PPP')}</div>
+            <div className="text-sm text-[#6B4C32]">Placed: {formatTz(parseISO(order.createdAt), 'PPP', { timeZone: 'America/Los_Angeles' })}</div>
           </div>
         </div>
 
