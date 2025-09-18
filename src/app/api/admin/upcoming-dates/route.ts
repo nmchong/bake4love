@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
-import { fromZonedTime, toZonedTime } from "date-fns-tz"
+import { fromZonedTime, toZonedTime, format as formatTz } from "date-fns-tz"
 
 export async function GET() {
   try {
@@ -38,7 +38,8 @@ export async function GET() {
     
     upcomingOrders.forEach(order => {
       const laPickupDate = toZonedTime(order.pickupDate, TIMEZONE)
-      const dateKey = laPickupDate.toLocaleDateString('en-CA', { timeZone: TIMEZONE }) // YYYY-MM-DD
+      // Use deterministic formatter to avoid locale-dependent shifts
+      const dateKey = formatTz(laPickupDate, 'yyyy-MM-dd', { timeZone: TIMEZONE })
       const totalItems = order.orderItems.reduce((sum, item) => sum + item.quantity, 0)
       
       if (ordersByDate.has(dateKey)) {

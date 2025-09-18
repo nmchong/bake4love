@@ -3,8 +3,7 @@
 import { useEffect, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Calendar, Package } from "lucide-react"
-import { format } from "date-fns"
-import { fromZonedTime } from "date-fns-tz"
+// no tz conversion needed here; API already returns LA date keys
 
 interface UpcomingDate {
   date: string
@@ -41,13 +40,11 @@ export default function UpcomingPickupDates() {
   }, [])
 
   const formatDate = (dateString: string) => {
-    // convert the LA timezone date string to a proper date object
-    const laDate = fromZonedTime(dateString, "America/Los_Angeles")
-    const month = laDate.getMonth() + 1
-    const day = laDate.getDate()
-    const dayOfWeek = format(laDate, 'EEE').toLowerCase()
-    
-    return `${month}/${day} ${dayOfWeek}`
+    // dateString is YYYY-MM-DD already computed for LA day; render it directly
+    const [y, m, d] = dateString.split('-').map(Number)
+    const weekdayIdx = new Date(Date.UTC(y, m - 1, d)).getUTCDay()
+    const weekday = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][weekdayIdx].toLowerCase()
+    return `${m}/${d} ${weekday}`
   }
 
   if (loading) {
