@@ -30,8 +30,8 @@ export default function ImageManager({ type, currentImageUrl, onSave }: ImageMan
       return
     }
     
-    if (file.size > 5 * 1024 * 1024) { // 5MB limit
-      alert('Image size must be less than 5MB')
+    if (file.size > 10 * 1024 * 1024) { // 10MB limit
+      alert('Image size must be less than 10MB')
       return
     }
 
