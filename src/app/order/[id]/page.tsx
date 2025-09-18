@@ -5,7 +5,7 @@ import { useParams, useSearchParams, useRouter } from "next/navigation"
 import { format, parseISO, addMinutes, parse, format as formatDate } from "date-fns"
 import { Button } from "@/components/ui/button"
 import { useCart } from "@/components/customer/CartContext"
-import { toZonedTime } from "date-fns-tz"
+import { toZonedTime, fromZonedTime } from "date-fns-tz"
 import Image from "next/image"
 
 
@@ -269,7 +269,11 @@ export default function OrderPage() {
           <h2 className="font-semibold mb-2 text-[#4A2F1B]">Customer Information</h2>
           <p><span className="font-semibold">Name:</span> {order.customerName}</p>
           <p><span className="font-semibold">Email:</span> {order.customerEmail}</p>
-          <p><span className="font-semibold">Pickup Date:</span> {format(toZonedTime(parseISO(order.pickupDate), 'America/Los_Angeles'), 'EEEE, MMMM d, yyyy')}</p>
+          <p><span className="font-semibold">Pickup Date:</span> {(() => {
+            // Parse the date string as a date in LA timezone, consistent with the rest of the app
+            const laDate = fromZonedTime(order.pickupDate, 'America/Los_Angeles')
+            return format(laDate, 'EEEE, MMMM d, yyyy')
+          })()}</p>
           <p><span className="font-semibold">Pickup Time:</span> {getTimeRangeLabel(order.pickupTime)}</p>
           {order.notes && <p><span className="font-semibold">Notes:</span> {order.notes}</p>}
         </div>

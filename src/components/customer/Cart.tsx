@@ -5,7 +5,7 @@ import { Drawer, DrawerContent, DrawerTrigger, DrawerTitle } from "@/components/
 import { Button } from "@/components/ui/button"
 import { useCart } from "@/components/customer/CartContext"
 import { format, parseISO, addMinutes, parse, format as formatDate, addDays, isBefore, isAfter, startOfDay } from "date-fns"
-import { toZonedTime } from "date-fns-tz"
+import { toZonedTime, fromZonedTime } from "date-fns-tz"
 import { useState, useEffect, useCallback } from "react"
 
 
@@ -85,7 +85,11 @@ export default function Cart() {
           ) : (
             <>
               <div className="text-lg">
-                <span className="font-semibold text-[#4A2F1B]">Pickup Date:</span> {pickupDate ? format(toZonedTime(parseISO(pickupDate), 'America/Los_Angeles'), 'EEEE, MMMM d, yyyy') : <span className="text-red-500">Not selected</span>}
+                <span className="font-semibold text-[#4A2F1B]">Pickup Date:</span> {pickupDate ? (() => {
+                  // Parse the date string as a date in LA timezone
+                  const laDate = fromZonedTime(pickupDate, 'America/Los_Angeles')
+                  return format(laDate, 'EEEE, MMMM d, yyyy')
+                })() : <span className="text-red-500">Not selected</span>}
               </div>
               <div className="text-lg">
                 <span className="font-semibold text-[#4A2F1B]">Pickup Time:</span> {pickupTime ? getTimeRangeLabel(pickupTime) : <span className="text-red-500">Not selected</span>}

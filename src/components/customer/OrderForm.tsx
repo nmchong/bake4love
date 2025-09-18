@@ -1,8 +1,8 @@
 "use client"
 
 import { useCart } from "./CartContext"
-import { parseISO, format } from "date-fns"
-import { toZonedTime } from "date-fns-tz"
+import { format } from "date-fns"
+import { fromZonedTime } from "date-fns-tz"
 
 export interface OrderFormValues {
   name: string
@@ -25,9 +25,9 @@ export default function OrderForm({ values, onChange }: OrderFormProps) {
   // format date for display
   const formatPickupDate = (dateString: string | null) => {
     if (!dateString) return "Not selected"
-    // use the same timezone handling as Cart.tsx
-    const date = toZonedTime(parseISO(dateString), 'America/Los_Angeles')
-    return format(date, 'EEEE, MMMM d, yyyy')
+    // Parse the date string as a date in LA timezone
+    const laDate = fromZonedTime(dateString, 'America/Los_Angeles')
+    return format(laDate, 'EEEE, MMMM d, yyyy')
   }
 
   // format time for display
