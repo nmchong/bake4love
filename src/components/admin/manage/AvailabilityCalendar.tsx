@@ -8,11 +8,15 @@ interface AvailabilityCalendarProps {
 }
 
 export default function AvailabilityCalendar({ selectedDate, onSelectDate, ordersByDate, availabilityByDate, customerViewRange, formatDateLocal }: AvailabilityCalendarProps) {
-  // rolling 5-week (35-day) grid, aligned to correct day of week
-  const today = new Date();
-  const startRaw = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 7);
-  const start = new Date(startRaw);
-  start.setDate(start.getDate() - start.getDay());
+  // rolling 5-week (35-day) grid, aligned to correct day of week, based on PST
+  const tz = 'America/Los_Angeles'
+  const todayLocal = new Date()
+  const todayLa = new Date(todayLocal.toLocaleString('en-US', { timeZone: tz }))
+  // build the start of the grid from LA perspective
+  const startRaw = new Date(todayLa.getFullYear(), todayLa.getMonth(), todayLa.getDate() - 7)
+  const startLaWeekday = new Date(startRaw.toLocaleString('en-US', { timeZone: tz })).getDay()
+  const start = new Date(startRaw)
+  start.setDate(start.getDate() - startLaWeekday)
 
   const days: Date[] = [];
   for (let i = 0; i < 35; i++) {
@@ -50,17 +54,20 @@ export default function AvailabilityCalendar({ selectedDate, onSelectDate, order
       </div>
       <div className="grid grid-cols-7 gap-1">
         {days.map(date => {
-          const key = formatDateLocal(date)
-          const color = getColor(date)
-          const isSelected = formatDateLocal(date) === formatDateLocal(selectedDate)
-          const inCustomerRange = date >= customerViewRange.start && date <= customerViewRange.end
+          // compute LA-based date for keys and comparisons
+          const laDate = new Date(date.toLocaleString('en-US', { timeZone: tz }))
+          const key = laDate.toLocaleDateString('en-CA', { timeZone: tz })
+          const color = getColor(laDate)
+          const isSelected = formatDateLocal(laDate) === formatDateLocal(selectedDate)
+          const inCustomerRange = laDate >= customerViewRange.start && laDate <= customerViewRange.end
           return (
             <button
               key={key}
               className={`aspect-square rounded flex flex-col items-center justify-center border ${color} ${isSelected ? 'ring-2 ring-black' : ''} ${inCustomerRange ? 'border-1 border-black' : ''}`}
-              onClick={() => onSelectDate(new Date(date))}
+              onClick={() => onSelectDate(laDate)}
             >
-              <span>{date.getDate()}</span>
+              {/* render day number in PST so label matches PST key */}
+              <span>{laDate.getDate()}</span>
               {ordersByDate[key] ? <span className="text-xs text-gray-600">{ordersByDate[key]}</span> : null}
             </button>
           )

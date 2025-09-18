@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/prisma'
 import { NextResponse } from 'next/server'
-import { fromZonedTime } from 'date-fns-tz'
+import { fromZonedTime, toZonedTime } from 'date-fns-tz'
 
 // display number of orders (date, order count) per date for date range
 // GET /api/admin/orders-range?start=YYYY-MM-DD&end=YYYY-MM-DD
@@ -14,21 +14,21 @@ export async function GET(req: Request) {
   }
 
   const TIMEZONE = 'America/Los_Angeles'
-  const startDate = new Date(startParam)
-  const endDate = new Date(endParam)
+  // Interpret incoming YYYY-MM-DD strings as PST day boundaries
+  const startDate = fromZonedTime(startParam, TIMEZONE)
+  const endDate = fromZonedTime(endParam, TIMEZONE)
   if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
     return NextResponse.json({ error: 'Invalid date' }, { status: 400 })
   }
 
-  // build list of all dates in range (inclusive)
+  // build list of all dates in range (inclusive), keyed in PST YYYY-MM-DD
   const dates: string[] = []
-  for (
-    let d = new Date(startDate);
-    d <= endDate;
-    d.setDate(d.getDate() + 1)
-  ) {
-    const iso = d.toISOString().slice(0, 10)
-    dates.push(iso)
+  for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+    const la = toZonedTime(d, TIMEZONE)
+    const key = la.toLocaleDateString('en-CA', { timeZone: TIMEZONE }) // YYYY-MM-DD
+    if (dates.length === 0 || dates[dates.length - 1] !== key) {
+      dates.push(key)
+    }
   }
 
   // for each date, count orders with pickupDate on that day
