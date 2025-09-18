@@ -1,3 +1,7 @@
+import { toZonedTime } from "date-fns-tz"
+
+const TIMEZONE = "America/Los_Angeles"
+
 interface DateDetailsPaneProps {
   date: Date
   ordersCount: number
@@ -42,9 +46,10 @@ function formatTimeSlot(slot: string): string {
 export default function DateDetailsPane({ date, ordersCount, isAvailable, hasOrders, menuItems, selectedTimeSlots, onToggleAvailable, onTimeSlotChange, onSave, isDirty, isSaving }: DateDetailsPaneProps) {
   const slots = generateTimeSlots()
   
-  // check if date is in the unorderable range (within 3 days from now or before)
-  const today = new Date()
-  const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate())
+  // check if date is in the unorderable range (within 3 days from now or before) in PST
+  const now = new Date()
+  const laNow = toZonedTime(now, TIMEZONE)
+  const startOfToday = new Date(laNow.getFullYear(), laNow.getMonth(), laNow.getDate())
   const threeDaysFromNow = new Date(startOfToday)
   threeDaysFromNow.setDate(startOfToday.getDate() + 3)
   const isDateUnorderable = date <= threeDaysFromNow

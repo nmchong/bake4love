@@ -7,6 +7,9 @@ import DateDetailsPane from "@/components/admin/manage/DateDetailsPane"
 import CompactMenuToggleTable from "@/components/admin/manage/CompactMenuToggleTable"
 import UnsavedChangesBanner from "@/components/admin/manage/UnsavedChangesBanner"
 import OrdersForDate from "@/components/admin/manage/OrdersForDate"
+import { toZonedTime, format as formatTz } from "date-fns-tz"
+
+const TIMEZONE = "America/Los_Angeles"
 
 interface MenuItemToggle {
   id: string
@@ -37,19 +40,25 @@ export default function AdminManagePage() {
   const [availabilityError, setAvailabilityError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
-  // customer view range: 4 days from now to 18 days from now (14 days from new start)
+  // customer view range: 4 days from now to 18 days from now (14 days from new start) in PST
   const today = new Date()
+  const laToday = toZonedTime(today, TIMEZONE)
   const customerViewRange = {
-    start: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 4),
-    end: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 17)
+    start: new Date(laToday.getFullYear(), laToday.getMonth(), laToday.getDate() + 4),
+    end: new Date(laToday.getFullYear(), laToday.getMonth(), laToday.getDate() + 17)
   }
 
-  // helper: get all dates in the current calendar grid (rolling 35-day window, aligned to week start)
+  // helper: get all dates in the current calendar grid (rolling 35-day window, aligned to week start) in PST
   function getCalendarDates() {
-    const today = new Date();
-    const startRaw = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 7);
+    // Get current time in PST
+    const now = new Date();
+    const laNow = toZonedTime(now, TIMEZONE);
+    
+    // Create start date 7 days ago in PST
+    const startRaw = new Date(laNow.getFullYear(), laNow.getMonth(), laNow.getDate() - 7);
     const start = new Date(startRaw);
     start.setDate(start.getDate() - start.getDay());
+    
     const days: Date[] = [];
     for (let i = 0; i < 35; i++) {
       const d = new Date(start);
@@ -59,12 +68,10 @@ export default function AdminManagePage() {
     return days;
   }
 
-  // format date as yyyy-mm-dd - simple formatting without timezone conversion
+  // format date as yyyy-mm-dd in PST timezone
   function formatDateLocal(date: Date) {
-    const year = date.getFullYear()
-    const month = String(date.getMonth() + 1).padStart(2, '0')
-    const day = String(date.getDate()).padStart(2, '0')
-    return `${year}-${month}-${day}`
+    const laDate = toZonedTime(date, TIMEZONE)
+    return formatTz(laDate, 'yyyy-MM-dd', { timeZone: TIMEZONE })
   }
 
   // fetch all data for the current calendar grid

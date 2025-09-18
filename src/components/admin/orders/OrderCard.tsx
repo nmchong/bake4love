@@ -69,7 +69,7 @@ export default function OrderCard({ order }: OrderCardProps) {
         {/* second column */}
         <div className="space-y-2">
           <div>
-            <span className="font-semibold">Ordered At:</span> {format(parseISO(order.createdAt), 'PPP p')}
+            <span className="font-semibold">Ordered At:</span> {formatTz(parseISO(order.createdAt), 'PPP p', { timeZone: TIMEZONE })}
           </div>
           
           <div>
