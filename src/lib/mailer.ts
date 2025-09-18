@@ -96,7 +96,7 @@ We'll see you soon!`;
     await transporter.sendMail({
       from: process.env.SMTP_FROM || "no-reply@localhost",
       to,
-      subject: `Bake4Love Order Placed: ${orderPlacedDate}`,
+      subject: `Bake4Love Order - Pickup: ${dateStr}`,
       text,           // plaintext fallback
       html,           // formatted version
     })
