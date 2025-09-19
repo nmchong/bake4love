@@ -27,20 +27,41 @@ export async function GET() {
 // update or create brand settings
 export async function PUT(request: NextRequest) {
   try {
-    const { bannerImageUrl, profileImageUrl } = await request.json()
+    const { bannerImageUrl, profileImageUrl, updateType } = await request.json()
 
-    // update or create brand settings
-    const brandSettings = await prisma.brandSettings.upsert({
+    // get current brand settings to preserve existing values
+    const currentSettings = await prisma.brandSettings.findUnique({
+      where: { id: "default" }
+    })
+
+    // if no settings exist, create with provided values
+    if (!currentSettings) {
+      const brandSettings = await prisma.brandSettings.create({
+        data: {
+          id: "default",
+          bannerImageUrl: bannerImageUrl || null,
+          profileImageUrl: profileImageUrl || null
+        }
+      })
+
+      return NextResponse.json({
+        bannerImageUrl: brandSettings.bannerImageUrl,
+        profileImageUrl: brandSettings.profileImageUrl
+      })
+    }
+
+    // update only the specific field being changed
+    const updateData: { bannerImageUrl?: string | null, profileImageUrl?: string | null } = {}
+    
+    if (updateType === 'banner') {
+      updateData.bannerImageUrl = bannerImageUrl
+    } else if (updateType === 'profile') {
+      updateData.profileImageUrl = profileImageUrl
+    }
+
+    const brandSettings = await prisma.brandSettings.update({
       where: { id: "default" },
-      update: {
-        bannerImageUrl,
-        profileImageUrl
-      },
-      create: {
-        id: "default",
-        bannerImageUrl,
-        profileImageUrl
-      }
+      data: updateData
     })
 
     return NextResponse.json({

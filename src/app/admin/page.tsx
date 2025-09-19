@@ -37,8 +37,8 @@ export default function AdminDashboardPage() {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          bannerImageUrl: type === 'banner' ? url : brandImages.bannerImageUrl,
-          profileImageUrl: type === 'profile' ? url : brandImages.profileImageUrl
+          [type === 'banner' ? 'bannerImageUrl' : 'profileImageUrl']: url,
+          updateType: type
         })
       })
       
