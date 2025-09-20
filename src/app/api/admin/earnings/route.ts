@@ -7,16 +7,14 @@ export async function GET() {
     const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
     const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
 
-    // get orders for different time periods
+    // get orders for different time periods - only include paid orders
     const [past7DaysOrders, past30DaysOrders, allTimeOrders] = await Promise.all([
       prisma.order.findMany({
         where: {
           createdAt: {
             gte: sevenDaysAgo,
           },
-          status: {
-            not: "cancelled"
-          }
+          status: "paid"
         },
         select: {
           totalCents: true,
@@ -27,9 +25,7 @@ export async function GET() {
           createdAt: {
             gte: thirtyDaysAgo,
           },
-          status: {
-            not: "cancelled"
-          }
+          status: "paid"
         },
         select: {
           totalCents: true,
@@ -37,9 +33,7 @@ export async function GET() {
       }),
       prisma.order.findMany({
         where: {
-          status: {
-            not: "cancelled"
-          }
+          status: "paid"
         },
         select: {
           totalCents: true,
