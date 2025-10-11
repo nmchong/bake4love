@@ -298,8 +298,8 @@ export default function DiscountManager() {
                   onChange={(e) => setFormData({ ...formData, type: e.target.value as "percent" | "fixed" })}
                   className="w-full px-3 py-2 border border-[#D4B494] rounded-md focus:outline-none focus:ring-2 focus:ring-[#A4551E]"
                 >
-                  <option value="fixed">Fixed Amount Off ($5 off orders over $30)</option>
-                  <option value="percent">Percentage Off (20% off orders over $30)</option>
+                  <option value="fixed">Fixed Amount Off (ex. $5 off orders over $30)</option>
+                  <option value="percent">Percentage Off (ex. 20% off orders over $30)</option>
                 </select>
               </div>
 
