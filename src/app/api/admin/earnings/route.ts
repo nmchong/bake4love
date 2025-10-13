@@ -7,14 +7,15 @@ export async function GET() {
     const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
     const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
 
-    // get orders for different time periods - only include paid orders
+    // get orders for different time periods
+    // Use pickupDate (not createdAt) so orders are counted by when customers pick up
     const [past7DaysOrders, past30DaysOrders, allTimeOrders] = await Promise.all([
       prisma.order.findMany({
         where: {
-          createdAt: {
+          pickupDate: {
             gte: sevenDaysAgo,
           },
-          status: "paid"
+          status: { in: ["paid", "fulfilled"] }
         },
         select: {
           totalCents: true,
@@ -22,10 +23,10 @@ export async function GET() {
       }),
       prisma.order.findMany({
         where: {
-          createdAt: {
+          pickupDate: {
             gte: thirtyDaysAgo,
           },
-          status: "paid"
+          status: { in: ["paid", "fulfilled"] }
         },
         select: {
           totalCents: true,
@@ -33,7 +34,7 @@ export async function GET() {
       }),
       prisma.order.findMany({
         where: {
-          status: "paid"
+          status: { in: ["paid", "fulfilled"] }
         },
         select: {
           totalCents: true,
