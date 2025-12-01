@@ -7,6 +7,7 @@ import { fromZonedTime } from "date-fns-tz"
 export interface OrderFormValues {
   name: string
   email: string
+  customerPhone: string
   notes: string
 }
 
@@ -80,6 +81,13 @@ export default function OrderForm({ values, onChange }: OrderFormProps) {
           className="w-full border rounded-lg p-4 text-lg"
           value={values.email}
           onChange={(e) => handleChange("email", e.target.value)}
+        />
+        <input
+          type="text"
+          placeholder="Phone Number"
+          className="w-full border rounded-lg p-4 text-lg"
+          value={values.customerPhone}
+          onChange={(e) => handleChange("customerPhone", e.target.value)}
         />
         <textarea
           placeholder="Notes (optional)"

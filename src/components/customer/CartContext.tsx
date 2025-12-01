@@ -12,6 +12,7 @@ export type CartItem = {
 interface CustomerInfo {
   name: string
   email: string
+  customerPhone: string
   notes: string
 }
 
@@ -47,7 +48,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [cartItems, setCartItems] = useState<CartItem[]>([])
   const [pickupDate, setPickupDate] = useState<string | null>(null)
   const [pickupTime, setPickupTime] = useState<string | null>(null)
-  const [customerInfo, setCustomerInfo] = useState<CustomerInfo>({ name: "", email: "", notes: "" })
+  const [customerInfo, setCustomerInfo] = useState<CustomerInfo>({ name: "", email: "", customerPhone: "", notes: "" })
   const [tipCents, setTipCents] = useState(200) // Default to $2
   const [discountCode, setDiscountCode] = useState("")
   const [discountCents, setDiscountCents] = useState(0)
@@ -63,7 +64,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         setCartItems(parsed.cartItems || [])
         setPickupDate(parsed.pickupDate || null)
         setPickupTime(parsed.pickupTime || null)
-        setCustomerInfo(parsed.customerInfo || { name: "", email: "", notes: "" })
+        setCustomerInfo(parsed.customerInfo || { name: "", email: "", customerPhone: "", notes: "" })
         setTipCents(parsed.tipCents || 200)
         setDiscountCode(parsed.discountCode || "")
         setDiscountCents(parsed.discountCents || 0)
@@ -102,7 +103,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const resetCart = useCallback(() => {
     setCartItems([])
     setPickupTime(null)
-    setCustomerInfo({ name: "", email: "", notes: "" })
+    setCustomerInfo({ name: "", email: "", customerPhone: "", notes: "" })
     setTipCents(200)
     setDiscountCode("")
     setDiscountCents(0)

@@ -175,6 +175,7 @@ export default function CheckoutPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           customerEmail: form.email,
+          customerPhone: form.customerPhone,
           customerName: form.name,
           pickupDate,
           pickupTime,
