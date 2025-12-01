@@ -25,6 +25,7 @@ interface Order {
   id: string
   customerName: string
   customerEmail: string
+  customerPhone?: string
   pickupDate: string
   pickupTime: string
   notes?: string
@@ -269,6 +270,7 @@ export default function OrderPage() {
           <h2 className="font-semibold mb-2 text-[#4A2F1B]">Customer Information</h2>
           <p><span className="font-semibold">Name:</span> {order.customerName}</p>
           <p><span className="font-semibold">Email:</span> {order.customerEmail}</p>
+          <p><span className="font-semibold">Phone:</span> {order.customerPhone}</p>
           <p><span className="font-semibold">Pickup Date:</span> {(() => {
             // Parse the date string as a date in LA timezone, consistent with the rest of the app
             const laDate = fromZonedTime(order.pickupDate, 'America/Los_Angeles')

@@ -28,6 +28,7 @@ export async function GET(
         createdAt: true,
         customerName: true,
         customerEmail: true,
+        customerPhone: true,
         pickupDate: true,
         pickupTime: true,
         notes: true,
