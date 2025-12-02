@@ -45,6 +45,7 @@ export default function CheckoutPage() {
     pickupDate &&
     pickupTime &&
     form.email.trim() !== "" &&
+    form.customerPhone?.trim() !== "" &&
     !submitting
 
   // determine if date is in orderable window (4-17 days from today)

@@ -32,6 +32,12 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing fields" }, { status: 400 })
     }
 
+    // basic email format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(customerEmail)) {
+      return NextResponse.json({ error: "Invalid email" }, { status: 400 })
+    }
+
     // get total cost
     const menuItems = await prisma.menuItem.findMany({
       where: {
