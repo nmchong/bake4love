@@ -8,8 +8,9 @@ import Stripe from "stripe"
 export async function POST(req: Request) {
   try {
     const body = await req.json()
-    const { customerEmail, customerName, pickupDate, pickupTime, notes, cart, tipCents = 0, discountCode, promotionCodeId, discountDescription }: 
+    const { customerEmail, customerPhone, customerName, pickupDate, pickupTime, notes, cart, tipCents = 0, discountCode, promotionCodeId, discountDescription }: 
           { customerEmail: string;
+            customerPhone?: string;
             customerName: string;
             pickupDate: string;
             pickupTime: string;
@@ -78,6 +79,7 @@ export async function POST(req: Request) {
     const order = await prisma.order.create({
       data: {
         customerEmail,
+        customerPhone,
         customerName,
         pickupDate: fromZonedTime(pickupDate, "America/Los_Angeles"),
         pickupTime,
