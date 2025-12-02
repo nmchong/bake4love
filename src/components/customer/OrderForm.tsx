@@ -72,28 +72,28 @@ export default function OrderForm({ values, onChange }: OrderFormProps) {
           type="text"
           placeholder="Name"
           className="w-full border rounded-lg p-4 text-lg"
-          value={values.name}
+          value={values.name ?? ""}
           onChange={(e) => handleChange("name", e.target.value)}
         />
         <input
           type="email"
           placeholder="Email"
           className="w-full border rounded-lg p-4 text-lg"
-          value={values.email}
+          value={values.email ?? ""}
           onChange={(e) => handleChange("email", e.target.value)}
         />
         <input
           type="text"
           placeholder="Phone Number"
           className="w-full border rounded-lg p-4 text-lg"
-          value={values.customerPhone}
+          value={values.customerPhone ?? ""}
           onChange={(e) => handleChange("customerPhone", e.target.value)}
         />
         <textarea
           placeholder="Notes (optional)"
           className="w-full border rounded-lg p-4 text-lg"
           rows={4}
-          value={values.notes}
+          value={values.notes ?? ""}
           onChange={(e) => handleChange("notes", e.target.value)}
         />
       </div>
