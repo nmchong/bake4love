@@ -54,8 +54,9 @@ export async function sendOrderEmail(to: string, data: {
   customerNotes?: string;
   customerName: string;
   customerEmail: string;
+  customerPhone?: string;
 }) {
-  const { address, dateStr, timeStr, totalCents, orderId, orderPlacedDate, orderUrl, receiptUrl, customerNotes, customerName, customerEmail } = data;
+  const { address, dateStr, timeStr, totalCents, orderId, orderPlacedDate, orderUrl, receiptUrl, customerNotes, customerName, customerEmail, customerPhone } = data;
 
   const text = `Thank you for your order!
 
@@ -63,6 +64,7 @@ Please pick up your order at ${address} on ${dateStr} between ${timeStr}.
 
 Name: ${customerName}
 Email: ${customerEmail}
+Phone: ${customerPhone || '(none)'}
 Pickup date: ${dateStr}
 Pickup time: ${timeStr}
 
@@ -83,8 +85,9 @@ We'll see you soon!`;
     
     <p>Please pick up your order at <strong>${address}</strong> on <strong>${dateStr}</strong> between <strong>${timeStr}</strong>.</p>
     
-    <p><strong>Name:</strong> ${customerName}<br/>
+     <p><strong>Name:</strong> ${customerName}<br/>
        <strong>Email:</strong> ${customerEmail}<br/>
+       <strong>Phone:</strong> ${customerPhone || '(none)'}<br/>
        <strong>Pickup date:</strong> ${dateStr}<br/>
        <strong>Pickup time:</strong> ${timeStr}</p>
     
