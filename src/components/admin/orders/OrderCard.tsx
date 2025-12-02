@@ -32,7 +32,9 @@ export default function OrderCard({ order }: OrderCardProps) {
           </div>
           
           <div>
-            <span className="font-semibold">Customer:</span> {order.customerName} ({order.customerEmail})
+            <div><span className="font-semibold">Name:</span> {order.customerName}</div>
+            <div><span className="font-semibold">Email:</span> {order.customerEmail}</div>
+            <div><span className="font-semibold">Phone Number:</span> {order.customerPhone ?? "—"}</div>
           </div>
           
           <div>

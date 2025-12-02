@@ -16,6 +16,7 @@ export interface Order {
   id: string
   customerName: string
   customerEmail: string
+  customerPhone?: string
   pickupDate: string
   pickupTime: string
   notes?: string
