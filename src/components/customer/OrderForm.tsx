@@ -68,23 +68,27 @@ export default function OrderForm({ values, onChange }: OrderFormProps) {
       </div>
 
       <div className="space-y-3">
+        <p className="text-xs text-gray-600"><span className="font-semibold mr-1 text-xs">*</span>required</p>
         <input
           type="text"
-          placeholder="Name"
+          placeholder="Name *"
+          aria-required="true"
           className="w-full border rounded-lg p-4 text-lg"
           value={values.name ?? ""}
           onChange={(e) => handleChange("name", e.target.value)}
         />
         <input
           type="email"
-          placeholder="Email"
+          placeholder="Email *"
+          aria-required="true"
           className="w-full border rounded-lg p-4 text-lg"
           value={values.email ?? ""}
           onChange={(e) => handleChange("email", e.target.value)}
         />
         <input
           type="text"
-          placeholder="Phone Number"
+          placeholder="Phone Number *"
+          aria-required="true"
           className="w-full border rounded-lg p-4 text-lg"
           value={values.customerPhone ?? ""}
           onChange={(e) => handleChange("customerPhone", e.target.value)}
